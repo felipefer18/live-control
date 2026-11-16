@@ -1,0 +1,924 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Live Control</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="/vendor/phosphor/regular/style.css">
+<link rel="stylesheet" href="/vendor/phosphor/fill/style.css">
+<link rel="stylesheet" href="/app.css">
+</head>
+<body>
+<aside class="sidebar">
+  <div class="logo"><i class="ph-fill ph-broadcast"></i>LIVE CONTROL</div>
+  <nav id="tabs">
+    <button data-t="control" class="active"><i class="ph-fill ph-game-controller"></i>Controle</button>
+    <button data-t="overview"><i class="ph ph-chart-line-up"></i>Visão geral</button>
+    <button data-t="chat"><i class="ph ph-chat-centered-text"></i>Chat</button>
+    <button data-t="ads"><i class="ph ph-megaphone"></i>Anúncios</button>
+    <button data-t="triggers"><i class="ph ph-lightning"></i>Ações do chat</button>
+    <button data-t="sounds"><i class="ph ph-speaker-high"></i>Sons</button>
+    <button data-t="clips"><i class="ph ph-film-strip"></i>Clipes</button>
+    <button data-t="goals"><i class="ph ph-target"></i>Metas</button>
+    <button data-t="twitch"><i class="ph ph-twitch-logo"></i>Twitch e Bot</button>
+    <button data-t="profiles"><i class="ph ph-users"></i>Perfis</button>
+    <button data-t="visual"><i class="ph ph-palette"></i>Visual</button>
+    <button data-t="edit"><i class="ph ph-squares-four"></i>Botões</button>
+    <button data-t="check"><i class="ph ph-list-checks"></i>Checklist</button>
+  </nav>
+  <div class="userblock" onclick="activateTab('twitch')" title="Twitch e Bot">
+    <div class="avatar"><i class="ph-fill ph-user"></i></div>
+    <div class="nm"><b id="userName">Twitch sem login</b><span id="userSub">Conecte sua conta</span></div>
+    <i class="ph ph-gear"></i>
+  </div>
+</aside>
+<main class="main">
+  <header class="topbar">
+    <h1 id="pageTitle">Painel de controle</h1>
+    <div class="chips">
+      <span class="pill" id="obsPill"><span class="dot"></span>OBS</span>
+      <span class="pill" id="twPill"><span class="dot"></span>Twitch</span>
+      <span class="pill" id="livePill">Offline</span>
+      <span class="pill" id="phasePill"><i class="ph-fill ph-house-line"></i>Lobby</span>
+      <span class="divider"></span>
+      <button class="act sec sm" id="popBtn" onclick="popTab()" title="Abrir a aba atual numa janela separada"><i class="ph ph-arrow-square-out"></i>Destacar</button>
+    </div>
+  </header>
+  <div class="workspace"><div class="wrap">
+
+<!-- ===== CONTROLE ===== -->
+<section id="control" class="active">
+<div class="cgrid">
+ <div class="ccol">
+  <div class="blk" data-w="game">
+    <h2>Jogo ativo <small>troca cena, título, categoria, áudio e cores</small><button class="pop" data-pop="game" title="Destacar este bloco numa janela"><i class="ph ph-arrow-square-out"></i></button></h2>
+    <div class="grid3" id="profiles"></div>
+    <div class="box steps" id="profileResult" hidden style="margin-top:12px"></div>
+  </div>
+  <div class="blk" data-w="phase">
+    <h2>Fase da partida<button class="pop" data-pop="phase" title="Destacar este bloco numa janela"><i class="ph ph-arrow-square-out"></i></button></h2>
+    <div class="box">
+      <div class="phase-top">
+        <div><div class="k">Cena atual (OBS)</div><div class="v" id="phaseScene">—</div></div>
+        <div class="r"><div class="k">Fonte de dados</div><div class="v" id="phaseSource">—</div></div>
+      </div>
+      <div class="seg">
+        <button data-phase="auto"><i class="ph-fill ph-magic-wand"></i>Automático</button>
+        <button data-phase="lobby"><i class="ph-fill ph-house-line"></i>Lobby</button>
+        <button data-phase="game"><i class="ph-fill ph-game-controller"></i>Em partida</button>
+      </div>
+      <div id="phaseInfo" class="muted" style="margin-top:10px"></div>
+    </div>
+  </div>
+  <div class="blk" data-w="score">
+    <h2>Placar da sessão<button class="pop" data-pop="score" title="Destacar este bloco numa janela"><i class="ph ph-arrow-square-out"></i></button></h2>
+    <div class="box">
+      <div class="score4">
+        <div class="sc w"><b id="scW">0</b><span>vitórias</span></div>
+        <div class="sc l"><b id="scL">0</b><span>derrotas</span></div>
+        <div class="sc"><b id="scR">—</b><span>aproveitamento</span></div>
+        <div class="sc"><b id="scS">—</b><span>sequência</span></div>
+      </div>
+      <div class="row" style="margin-top:12px">
+        <button class="act" style="background:#059669" data-act='{"type":"score","result":"win"}'><i class="ph-fill ph-trophy"></i>Vitória</button>
+        <button class="act" style="background:#dc2626" data-act='{"type":"score","result":"loss"}'><i class="ph-fill ph-skull"></i>Derrota</button>
+        <button class="act sec" data-act='{"type":"score","result":"undo"}'><i class="ph ph-arrow-counter-clockwise"></i>Desfazer</button>
+        <button class="act sec" id="scReset"><i class="ph ph-broom"></i>Zerar</button>
+        <label class="chk" style="margin-left:auto"><input type="checkbox" id="scAuto">Contar sozinho (CS2 e LoL)</label>
+      </div>
+      <div id="scGames" style="margin-top:8px"></div>
+    </div>
+  </div>
+  <div class="blk" data-w="buttons"><h2>Cenas e atalhos<button class="pop" data-pop="buttons" title="Destacar este bloco numa janela"><i class="ph ph-arrow-square-out"></i></button></h2><div class="grid" id="buttons"></div></div>
+  <div class="blk" data-w="sfx"><h2>Efeitos sonoros<button class="pop" data-pop="sfx" title="Destacar este bloco numa janela"><i class="ph ph-arrow-square-out"></i></button></h2><div class="grid" id="sfxGrid"></div></div>
+  <div class="blk" data-w="announce"><h2>Anúncios no chat<button class="pop" data-pop="announce" title="Destacar este bloco numa janela"><i class="ph ph-arrow-square-out"></i></button></h2><div class="grid" id="annGridCtl"></div></div>
+  <div class="blk" data-w="alerts">
+    <h2>Fila de alertas <small id="alertInfo"></small><button class="pop" data-pop="alerts" title="Destacar este bloco numa janela"><i class="ph ph-arrow-square-out"></i></button></h2>
+    <div class="row">
+      <button class="act sec" data-act='{"type":"alertControl","action":"skip"}'><i class="ph ph-skip-forward"></i>Pular</button>
+      <button class="act sec" data-act='{"type":"alertControl","action":"replay"}'><i class="ph ph-repeat"></i>Repetir último</button>
+      <button class="act sec" id="pauseBtn" data-act='{"type":"alertControl","action":"toggle"}'><i class="ph ph-pause"></i>Pausar</button>
+      <button class="act sec" data-act='{"type":"alertControl","action":"clear"}'><i class="ph ph-broom"></i>Limpar fila</button>
+    </div>
+    <div class="muted" style="margin:10px 0 6px">Testar alertas</div>
+    <div class="row">
+      <button class="act sec" onclick="testDon(5)"><i class="ph ph-currency-circle-dollar"></i>R$5</button>
+      <button class="act sec" onclick="testDon(25)"><i class="ph ph-currency-circle-dollar"></i>R$25</button>
+      <button class="act sec" onclick="testDon(100)"><i class="ph ph-currency-circle-dollar"></i>R$100</button>
+      <button class="act sec" onclick="testEvt('follow')"><i class="ph ph-user-plus"></i>Follow</button>
+      <button class="act sec" onclick="testEvt('sub')"><i class="ph ph-star"></i>Sub</button>
+      <button class="act sec" onclick="testEvt('raid',25)"><i class="ph ph-rocket"></i>Raid</button>
+    </div>
+  </div>
+  <div class="blk" data-w="session">
+    <h2>Sessão e metas<button class="pop" data-pop="session" title="Destacar este bloco numa janela"><i class="ph ph-arrow-square-out"></i></button></h2><div class="stats" id="session"></div>
+    <div style="height:12px"></div><div id="goalMini"></div>
+  </div>
+  <div class="blk" data-w="health"><h2>Saúde da live<button class="pop" data-pop="health" title="Destacar este bloco numa janela"><i class="ph ph-arrow-square-out"></i></button></h2><div class="stats" id="stats"></div></div>
+ </div>
+ <div class="ccol">
+  <div class="blk" data-w="brb"><h2>Controle de cena<button class="pop" data-pop="brb" title="Destacar este bloco numa janela"><i class="ph ph-arrow-square-out"></i></button></h2>
+    <button class="tile warn" id="brbBtn" data-act='{"type":"brb"}' style="width:100%;min-height:112px"><i class="ph-fill ph-coffee"></i><span id="brbLabel">Tela "Já volto"</span></button>
+  </div>
+  <div class="blk" data-w="stream"><h2>Transmissão<button class="pop" data-pop="stream" title="Destacar este bloco numa janela"><i class="ph ph-arrow-square-out"></i></button></h2>
+    <button class="tile danger" style="width:100%" data-act='{"type":"toggleStream"}'><i class="ph-fill ph-broadcast"></i>Iniciar / parar live</button>
+  </div>
+  <div class="blk" data-w="quick"><h2>Ações rápidas<button class="pop" data-pop="quick" title="Destacar este bloco numa janela"><i class="ph ph-arrow-square-out"></i></button></h2><div class="grid2" id="quickGrid"></div></div>
+  <div class="blk" data-w="mixer">
+    <h2>Mixer de áudio<button class="pop" data-pop="mixer" title="Destacar este bloco numa janela"><i class="ph ph-arrow-square-out"></i></button></h2>
+    <div class="box" id="mixerBox"><p class="muted" style="margin:0">Conecte o OBS para controlar o volume das fontes de áudio.</p></div>
+    <div class="row">
+      <button class="act sec sm" onclick="saveMixerProfile()" title="Guarda estes volumes no jogo ativo; ao clicar no jogo, eles voltam"><i class="ph ph-floppy-disk"></i>Salvar no jogo</button>
+      <details id="mixCfg"><summary><i class="ph ph-sliders-horizontal"></i>Escolher fontes</summary><div id="mixList"></div></details>
+    </div>
+  </div>
+ </div>
+</div>
+</section>
+
+<!-- ===== VISÃO GERAL ===== -->
+<section id="overview">
+  <div class="blk" data-w="ovstats"><h2>Agora<button class="pop" data-pop="ovstats" title="Destacar este bloco numa janela">↗</button></h2>
+    <div class="stats" id="ovStats"></div>
+    <div class="box" id="ovInfo" style="margin-top:10px"></div>
+  </div>
+  <div class="blk" data-w="feed"><h2>Últimos eventos<button class="pop" data-pop="feed" title="Destacar este bloco numa janela">↗</button></h2>
+    <div class="box" id="feedList" style="max-height:340px;overflow-y:auto"></div>
+  </div>
+  <div class="blk" data-w="top"><h2>Quem mais fala<button class="pop" data-pop="top" title="Destacar este bloco numa janela">↗</button></h2>
+    <div class="box" id="topChat"></div>
+  </div>
+</section>
+
+<!-- ===== AÇÕES DO CHAT ===== -->
+<section id="triggers">
+  <div class="notice"><div class="ic"><i class="ph-fill ph-lightning"></i></div><div><strong>Quando acontecer algo, o app faz algo.</strong> Escolha o gatilho (recompensa de pontos do canal, doação, bits, follow, sub, raid, comando no chat, vitória ou derrota) e o que fazer: tocar um som, mostrar um texto na tela, trocar de cena por alguns segundos, falar no chat ou marcar um clipe. Use <code>{user}</code>, <code>{amount}</code>, <code>{reward}</code> e <code>{input}</code> nos textos.</div></div>
+  <datalist id="dlSounds"></datalist>
+  <div id="trgList"></div>
+  <div class="row"><button class="act sec" onclick="addTrigger()"><i class="ph ph-plus"></i>Nova ação</button><button class="act" onclick="saveTriggers()"><i class="ph ph-floppy-disk"></i>Salvar ações</button></div>
+  <div class="box">
+    <h3>Recompensas de pontos do canal</h3>
+    <p class="muted" style="margin-top:0">O app percebe qualquer resgate. Para a ação disparar, o nome da recompensa tem que ser igual ao que está na Twitch. Recompensas que o app cria já concluem o resgate sozinhas; as que você criou no painel da Twitch ficam na sua fila de resgates e você limpa por lá. É preciso ser afiliado ou parceiro.</p>
+    <div class="row"><button class="act sec" onclick="loadRewards()"><i class="ph ph-list-plus"></i>Ver recompensas da Twitch</button></div>
+    <div id="rewList"></div>
+    <div class="rowgrid"><input class="f" id="rwTitle" placeholder="Nome da nova recompensa" style="flex:2"><input class="f" id="rwCost" type="number" min="1" placeholder="Custo (pontos)"><input class="f" id="rwPrompt" placeholder="Descrição (opcional)" style="flex:3"><button class="act" onclick="createReward()"><i class="ph ph-plus"></i>Criar na Twitch</button></div>
+  </div>
+</section>
+
+<!-- ===== SONS ===== -->
+<section id="sounds">
+  <div class="blk" data-w="sfxlib">
+    <h2>Biblioteca de sons<button class="pop" data-pop="sfxlib" title="Destacar este bloco numa janela">↗</button></h2>
+    <div class="box">
+      <div class="row"><label class="muted" style="display:flex;align-items:center;gap:10px;flex:1;min-width:230px">Volume dos efeitos na live <input type="range" id="sndVol" min="0" max="100" step="5" value="80" style="flex:1;padding:0" oninput="$('#sndVolOut').textContent=this.value+'%'" onchange="saveSndVol()"><b id="sndVolOut" style="color:var(--text);min-width:42px">80%</b></label><button class="act sec" data-act='{"type":"stopSounds"}'><i class="ph ph-speaker-slash"></i>Parar todos os sons</button></div>
+      <div class="row"><input type="file" id="sndFile" accept=".mp3,.wav,.ogg,audio/*" multiple style="flex:1;min-width:200px"><button class="act" onclick="uploadSounds()">Enviar sons</button></div>
+      <p class="muted" style="margin:0">Aceita .mp3, .wav e .ogg (até 15 MB cada). Você também pode colocar os arquivos direto na pasta <code>sounds</code> do app.</p>
+    </div>
+    <div class="box" id="sndList"></div>
+  </div>
+  <p class="muted">O ▶ toca só no seu PC, para você ouvir antes. O botão no painel toca na live, pelo overlay de alertas no OBS. Os sons que já vêm no app são sintéticos e livres de direitos. Para um som de meme como o "FAH" original, coloque o seu arquivo aqui e crie o botão.</p>
+</section>
+
+<!-- ===== ANÚNCIOS ===== -->
+<section id="ads">
+  <div class="blk" data-w="ann">
+    <h2>Anúncios no chat<button class="pop" data-pop="ann" title="Destacar este bloco numa janela">↗</button></h2>
+    <p class="muted" style="margin-top:0">Aparecem destacados no chat da Twitch, com a cor escolhida. Clique para enviar.</p>
+    <div class="grid" id="annGrid"></div>
+    <div class="muted" style="margin:14px 0 6px">Enviar um anúncio agora</div>
+    <div class="row"><input id="annText" maxlength="500" placeholder="Texto do anúncio" style="flex:1;min-width:200px"><select id="annColor"><option value="primary">Cor do canal</option><option value="blue">Azul</option><option value="green">Verde</option><option value="orange">Laranja</option><option value="purple">Roxo</option></select><button class="act" onclick="sendAnn()">Enviar</button></div>
+  </div>
+  <div class="blk" data-w="ad">
+    <h2>Intervalo comercial (ads)<button class="pop" data-pop="ad" title="Destacar este bloco numa janela">↗</button></h2>
+    <div class="box"><div id="adInfo" class="muted" style="margin-bottom:10px"></div>
+      <div class="row" id="adBtns"></div>
+      <div class="row"><button class="act sec" onclick="snoozeAd()"><i class="ph ph-moon-stars"></i>Adiar próximo anúncio</button><label class="muted"><input type="checkbox" id="adWarn" onchange="saveAdWarn()"> Avisar o chat quando um anúncio começar</label></div>
+      <p class="muted" style="margin:6px 0 0">Só funciona para afiliados e parceiros da Twitch. O anúncio roda na hora, então avise antes se quiser.</p></div>
+  </div>
+  <h2>Editar anúncios salvos</h2>
+  <div class="box"><div id="annRows"></div>
+    <div class="row"><button class="act sec" onclick="addRow('#annRows',F_ANN,{color:'primary'})">+ Anúncio</button><button class="act" onclick="saveAnn()">Salvar anúncios</button></div>
+    <p class="muted">Cada anúncio salvo vira um botão aqui e na aba Controle. Em "Botões" você também pode criar um botão do tipo <code>announce</code> (com o nome do anúncio) ou <code>ad</code> (com os segundos).</p></div>
+</section>
+
+<!-- ===== CHAT ===== -->
+<section id="chat">
+  <div id="chatlist"></div>
+  <div class="row"><input id="sayText" style="flex:1" placeholder="Escrever no chat como você (precisa da Twitch conectada)"><button class="act" onclick="say()">Enviar</button></div>
+</section>
+
+<!-- ===== CLIPES ===== -->
+<section id="clips">
+  <div class="box warnbox" id="ffwarn" hidden><b>ffmpeg não encontrado.</b> Para cortar os clipes automaticamente, instale com <code>winget install Gyan.FFmpeg</code> e reinicie o app. As marcações e a exportação funcionam sem ele.</div>
+  <div class="box" id="autoClipBox">
+    <h3>Marcação automática de momentos</h3>
+    <div class="row"><label class="chk"><input type="checkbox" id="acOn">Marcar momentos sozinho (usa o replay e a gravação do OBS)</label></div>
+    <div class="rowgrid">
+      <label class="muted" style="display:flex;align-items:center;gap:6px">CS2: a partir de <input class="f" type="number" id="acCs" min="0" style="width:70px;flex:none"> kills no round</label>
+      <label class="muted" style="display:flex;align-items:center;gap:6px">LoL: a partir de <input class="f" type="number" id="acLol" min="0" style="width:70px;flex:none"> kills seguidas</label>
+      <label class="muted" style="display:flex;align-items:center;gap:6px">Doação a partir de R$ <input class="f" type="number" id="acDon" min="0" style="width:80px;flex:none"></label>
+      <label class="muted" style="display:flex;align-items:center;gap:6px">Chat acima de <input class="f" type="number" id="acChat" min="0" style="width:70px;flex:none"> msgs/min</label>
+    </div>
+    <div class="row"><label class="chk"><input type="checkbox" id="acRaid">Marcar raids</label><label class="chk"><input type="checkbox" id="acTw">Também criar um clipe oficial na Twitch a cada marcação automática</label><button class="act sm" onclick="saveAutoClips()"><i class="ph ph-floppy-disk"></i>Salvar</button></div>
+    <p class="muted" style="margin:0">Zero desliga cada regra. No CS2 e no LoL a marcação usa os dados do próprio jogo (multi-kill). A opção do clipe da Twitch cria um clipe de verdade no seu canal, por isso vem desligada.</p>
+  </div>
+  <div class="row">
+    <button class="act" onclick="cutAll(['wide'])"><i class="ph ph-scissors"></i>Cortar todos (16:9)</button>
+    <button class="act" onclick="cutAll(['vertical'])"><i class="ph ph-device-mobile"></i>Cortar todos (vertical)</button>
+    <button class="act sec" onclick="cutAll(['wide','vertical'])">Os dois</button>
+    <button class="act sec" onclick="twitchClip()"><i class="ph ph-twitch-logo"></i>Clipe na Twitch agora</button>
+    <button class="act sec" onclick="api('/api/clips/open-folder','POST').then(r=>toast(r.ok?'Pasta aberta':'Erro: '+r.error))"><i class="ph ph-folder-open"></i>Abrir pasta</button>
+  </div>
+  <div id="cutProg"></div>
+  <div class="row">
+    <input id="mkName" style="flex:1;min-width:180px" placeholder="Nome do momento (ex.: ace no Mirage)">
+    <button class="act" onclick="mark()"><i class="ph ph-scissors"></i>Marcar agora</button>
+  </div>
+  <div class="row">
+    <span class="muted">Cortar</span><input id="cutBefore" type="number" style="width:70px" value="25"><span class="muted">s antes e</span><input id="cutAfter" type="number" style="width:70px" value="10"><span class="muted">s depois</span>
+    <button class="act sec sm" onclick="loadMarkers()">Atualizar</button>
+    <a class="act sec sm" href="/api/markers/export?format=csv" style="text-decoration:none">Exportar CSV</a>
+    <a class="act sec sm" href="/api/markers/export?format=txt" target="_blank" style="text-decoration:none">Lista em texto</a>
+    <button class="act del sm" onclick="clearMarkers()">Limpar tudo</button>
+  </div>
+  <div class="box" id="metaBox" hidden></div>
+  <div class="scroll"><table><thead><tr><th>Tempo</th><th>Nome</th><th>Jogo</th><th>Arquivo</th><th>Cortar</th></tr></thead><tbody id="mk"></tbody></table></div>
+  <p class="muted">Cada marcação guarda o tempo da live e salva o replay do OBS. O corte usa a gravação inteira (se estiver gravando) ou o replay. O vertical (9:16) já sai pronto para TikTok e Shorts, com fundo desfocado.</p>
+</section>
+
+<!-- ===== METAS ===== -->
+<section id="goals">
+  <div class="box"><p class="muted" style="margin-top:0">As metas sobem sozinhas com doações (R$), follows e subs. Mostre na live com a fonte de navegador <code>/overlays/goals.html</code> (ou <code>?id=g1</code> para uma meta só).</p>
+    <div id="goalRows"></div>
+    <div class="row"><button class="act sec" onclick="addRow('#goalRows',F_GOAL,{type:'donation',target:100,current:0,unit:'R$'})">+ Nova meta</button><button class="act" onclick="saveGoals()">Salvar metas</button><button class="act del" onclick="resetSession()">Zerar sessão e metas</button></div>
+  </div>
+</section>
+
+<!-- ===== TWITCH E BOT ===== -->
+<section id="twitch">
+  <div class="box">
+    <h3>Twitch</h3>
+    <div id="twStatus" class="muted" style="margin-bottom:10px"></div>
+    <div class="row"><input id="twChannel" placeholder="Seu canal (ex.: meucanal)" style="flex:1"><input id="twClient" placeholder="Client ID da Twitch" style="flex:2"><button class="act sec" onclick="saveTwitch()">Salvar</button></div>
+    <div class="row"><button class="act" onclick="twLogin()">Conectar Twitch</button><button class="act sec" onclick="twLogout()">Desconectar</button></div>
+    <p class="muted">Como pegar o Client ID: entre em <a href="https://dev.twitch.tv/console/apps" target="_blank" rel="noopener">dev.twitch.tv/console/apps</a> > Registrar aplicação, tipo de cliente <b>Público</b>, URL de redirecionamento <code>http://localhost</code>. Ligar a Twitch libera título, categoria, follows, subs, raids, bits e responder no chat.</p>
+    <div class="row"><input id="twTitle" placeholder="Título da live" style="flex:2"><input id="twCat" placeholder="Categoria" style="flex:1"><button class="act sec" onclick="twApply()">Atualizar agora</button></div>
+  </div>
+  <div class="box">
+    <h3>LivePix</h3>
+    <div id="lpStatus" class="muted" style="margin-bottom:10px"></div>
+    <div class="row"><input id="lpClient" placeholder="Client ID" style="flex:1"><input id="lpSecret" type="password" placeholder="Client Secret (fica só no seu PC)" style="flex:1"></div>
+    <div class="row"><label class="muted"><input type="checkbox" id="lpThanks"> Agradecer no chat a cada doação</label><button class="act" onclick="saveLivepix()">Salvar e conectar</button></div>
+    <p class="muted">Crie a aplicação no painel de desenvolvedor da LivePix (<a href="https://docs.livepix.gg/api" target="_blank" rel="noopener">docs.livepix.gg/api</a>), com o escopo <code>messages:read</code>. O app consulta as doações a cada poucos segundos, sem precisar de endereço público.</p>
+  </div>
+  <div class="box">
+    <h3>Comandos do chat</h3>
+    <div id="cmdRows"></div>
+    <div class="row"><button class="act sec" onclick="addRow('#cmdRows',F_CMD,{cooldown:60})">+ Comando</button><button class="act" onclick="saveBot()">Salvar</button></div>
+    <p class="muted">Use <code>{user}</code> na resposta para citar quem digitou. O recuo (cooldown) evita repetição.</p>
+  </div>
+  <div class="box">
+    <h3>Mensagens automáticas</h3>
+    <div id="timerRows"></div>
+    <div class="row"><button class="act sec" onclick="addRow('#timerRows',F_TIMER,{everyMin:15,minLines:5})">+ Mensagem</button><button class="act" onclick="saveBot()">Salvar</button></div>
+    <p class="muted">Só enviam com a live no ar e depois de pelo menos X mensagens no chat desde o último envio.</p>
+  </div>
+</section>
+
+<!-- ===== PERFIS ===== -->
+<section id="profiles-tab">
+  <div id="profEditor"></div>
+  <div class="row"><button class="act sec" onclick="addProfile()">+ Novo perfil</button><button class="act" onclick="saveProfiles()">Salvar perfis</button></div>
+  <div class="box">
+    <h3>Pausa e microfone</h3>
+    <div class="row"><input id="auMic" placeholder="Nome do microfone no OBS" style="flex:1"><input id="brbScene" placeholder="Cena de pausa" style="flex:1"><input id="brbSound" placeholder="Som da pausa (arquivo)" style="flex:1"></div>
+    <div class="row"><label class="muted"><input type="checkbox" id="brbMute"> Mutar o microfone ao pausar</label><button class="act" onclick="saveAudio()">Salvar</button></div>
+  </div>
+</section>
+
+<!-- ===== VISUAL ===== -->
+<section id="visual">
+  <div class="box">
+    <h3>Marca</h3>
+    <div class="row"><input id="vName" placeholder="Nome do canal (aparece nas molduras)" style="flex:1"><input id="vTag" placeholder="Frase curta (ex.: CS2 • LoL • Ron Run)" style="flex:1"></div>
+    <div class="row"><input id="vLp" placeholder="Link da LivePix (ex.: livepix.gg/seunome)" style="flex:2"><label class="muted" style="display:flex;align-items:center;gap:6px"><input type="checkbox" id="vQrAlways"> QR sempre na tela</label><input id="vQrEvery" type="number" min="60" placeholder="QR a cada (s)" style="width:130px" title="Só vale se o QR não ficar sempre na tela: de quantos em quantos segundos ele aparece nas telas cheias"></div>
+    <div class="muted" style="margin:6px 0">Redes que aparecem nas molduras e nas telas (até 3)</div>
+    <div id="socRows"></div>
+    <div class="row"><button class="act sec" onclick="addRow('#socRows',F_SOC,{})">+ Rede</button></div>
+    <div class="row"><select id="vScore" style="flex:1"><option value="lobby">Placar na moldura: só no lobby</option><option value="always">Placar na moldura: sempre (inclusive na partida)</option><option value="off">Sem placar na moldura</option></select></div>
+    <div class="row"><input id="vCam" placeholder="Fonte da webcam no OBS (vazio = LC Webcam)" style="flex:1"><input id="vCamDev" placeholder="Parte do nome da câmera (ex.: Logitech)" style="flex:1"></div>
+    <div class="muted">O QR code é gerado a partir do link da LivePix. Se você já tem uma fonte de webcam no OBS, escreva o nome dela aqui e o app usa a sua.</div>
+  </div>
+  <div class="box">
+    <h3>Webcam na partida e detecção de cada jogo</h3>
+    <p class="muted" style="margin-top:0">Cada jogo tem duas telas: o <b>lobby</b> (moldura completa, com painel, chat, QR e metas) e a <b>partida</b> (jogo em tela cheia, só com a webcam e o QR). Aqui você escolhe onde a webcam fica durante a partida e como o app percebe que a partida começou.</p>
+    <div id="layRows"></div>
+    <div class="row" style="margin-top:8px"><button class="act" onclick="saveVisual()">Salvar visual</button></div>
+  </div>
+  <div class="box">
+    <h3>Integração do CS2 (partida automática)</h3>
+    <div id="gsiInfo" class="muted" style="margin-bottom:10px"></div>
+    <div class="row"><button class="act" onclick="installGsi()">Instalar no CS2</button><a class="act sec" href="/api/cs2-gsi.cfg" style="text-decoration:none">Baixar o arquivo</a></div>
+    <p class="muted" style="margin:0">O CS2 tem um recurso oficial que avisa programas locais quando a partida começa e termina. "Instalar" copia um pequeno arquivo para a pasta cfg do CS2 (se eu não achar a pasta, baixe e copie você mesmo para <code>game/csgo/cfg</code>). Depois de instalar, <b>reinicie o CS2</b> uma vez. O LoL não precisa de nada: o app usa a API local do próprio jogo.</p>
+  </div>
+  <div class="box">
+    <h3>Prévia (estilo neon vibrante)</h3>
+    <div class="row" id="pvChips"></div>
+    <div class="row" id="pvPhase"><button class="chip act sec sm" data-ph="lobby" onclick="showPreview(null,'lobby')"><i class="ph-fill ph-house-line"></i>Lobby</button><button class="chip act sec sm" data-ph="game" onclick="showPreview(null,'game')"><i class="ph-fill ph-game-controller"></i>Em partida</button></div>
+    <div id="pv"><div id="pvin"></div></div>
+    <p class="muted">A prévia mostra o jogo e a webcam de mentira, só para dar noção de posição. O QR é o da sua LivePix.</p>
+  </div>
+  <div class="box">
+    <h3>Cenas no OBS</h3>
+    <div class="row"><button class="act sec" onclick="scenePlan()">Ver o que será criado</button><button class="act" onclick="sceneBuild()">Montar cenas no OBS</button></div>
+    <div class="box steps" id="sceneRes" hidden style="white-space:pre-wrap"></div>
+    <p class="muted">Cria uma cena para cada jogo (captura do jogo, webcam, moldura e alertas) e as telas Começando, Já volto e Encerrando. Só mexe em fontes com nome começando por <code>LC </code>, nunca apaga nada, e pula cenas que já têm itens seus. Precisa do OBS aberto e conectado.</p>
+  </div>
+</section>
+
+<section id="check"><div class="check" id="checklist"></div><button class="act sec" onclick="resetCheck()">Limpar checklist</button></section>
+
+<section id="edit">
+  <p class="muted">Tipos: <b>scene</b> (nome da cena), <b>toggleMute</b> (nome da fonte de áudio), <b>marker</b>, <b>replay</b>, <b>effect</b> (texto), <b>sound</b> (arquivo da pasta sounds).</p>
+  <div id="editor"></div>
+  <div class="row"><button class="act sec" onclick="addBtn()">+ Novo botão</button><button class="act" onclick="saveBtns()">Salvar</button></div>
+</section>
+
+</div></div></main>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let S={config:{buttons:[],profiles:[],commands:[],timers:[]},goals:[],session:{},twitch:{},livepix:{},activeProfile:null,brb:false};
+let ws,tt;
+const toast=(m,ms=2200)=>{const t=$('#toast');t.textContent=m;t.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>t.classList.remove('show'),ms)};
+async function api(path,method='GET',body){const r=await fetch(path,{method,headers:{'Content-Type':'application/json'},body:body?JSON.stringify(body):undefined});return r.json()}
+async function put(body){const r=await api('/api/settings','PUT',body);toast(r.ok?'Salvo':'Erro: '+r.error);return r}
+
+async function act(a){
+  const r=await api('/api/action','POST',a);
+  if(!r.ok){toast('Erro: '+r.error);return r}
+  if(a.type==='profile')showSteps(r.steps);
+  else if(a.type==='marker')loadMarkers();
+  else toast('OK');
+  return r;
+}
+function showSteps(steps){
+  const b=$('#profileResult');b.hidden=false;
+  b.innerHTML=steps.map(s=>`<div class="${s.ok?'ok':'no'}">${s.ok?'<i class="ph ph-check"></i>':'<i class="ph ph-x"></i>'} ${esc(s.name)}${s.detail?' — '+esc(s.detail):''}</div>`).join('');
+  const bad=steps.filter(s=>!s.ok).length;toast(bad?`Perfil aplicado, ${bad} item(ns) com problema`:'Perfil aplicado');
+}
+const testDon=v=>api('/api/donation','POST',{name:'Teste',amount:v,message:'Mensagem de teste',test:true});
+const testEvt=(kind,amount)=>api('/api/twitch/test-event','POST',{kind,amount});
+const say=async()=>{const i=$('#sayText');if(!i.value.trim())return;const r=await act({type:'say',text:i.value.trim()});if(r.ok)i.value=''};
+
+function activateTab(t){
+  document.querySelectorAll('#tabs button,section').forEach(x=>x.classList.remove('active'));
+  const b=document.querySelector(`#tabs button[data-t="${t}"]`);if(b)b.classList.add('active');
+  const s=$(t==='profiles'?'#profiles-tab':'#'+t);if(s)s.classList.add('active');
+  const PT={control:'Painel de controle',overview:'Visão geral',chat:'Chat',ads:'Anúncios',triggers:'Ações do chat',sounds:'Sons',clips:'Clipes',goals:'Metas',twitch:'Twitch e bot',profiles:'Perfis',visual:'Visual',edit:'Botões',check:'Checklist'};
+  const pt=$('#pageTitle');if(pt)pt.textContent=PT[t]||'Painel de controle';
+  if(t==='clips')loadMarkers();
+  if(t==='visual')showPreview();
+  if(t==='overview')loadOverview();
+  if(t==='ads')loadAds();
+  if(t==='sounds')loadSounds();
+  if(t==='triggers')loadTriggers();
+  if(t==='clips')renderAutoClips();
+}
+document.querySelectorAll('#tabs button').forEach(b=>b.onclick=()=>activateTab(b.dataset.t));
+document.addEventListener('click',e=>{const b=e.target.closest('[data-act]');if(b)act(JSON.parse(b.dataset.act));const d=e.target.closest('[data-del]');if(d)(d.closest('.pcard')||d.closest('.rowgrid')).remove()});
+
+/* ---------- botões ---------- */
+const TYPE_ICON={scene:'monitor-play',toggleMute:'microphone-slash',marker:'scissors',replay:'rewind',effect:'sparkle',sound:'speaker-high',stopSounds:'speaker-slash',announce:'megaphone',ad:'broadcast',qr:'qr-code'};
+const GAME_ICON={cs2:'crosshair',lol:'sword',ronrun:'person-simple-run'};
+const btnIcon=b=>b.icon||TYPE_ICON[b.type]||'squares-four';
+const profIcon=p=>p.icon||GAME_ICON[p.id]||'game-controller';
+const tileHTML=(b,extra)=>'<button class="tile '+(extra||'')+'" data-scene="'+esc(b.scene)+'" style="--c:'+esc(b.color||'#52525b')+'" data-act=\''+esc(JSON.stringify(btnAction(b)))+'\'><i class="ph-fill ph-'+esc(btnIcon(b))+'"></i><span>'+esc(b.label)+'</span></button>';
+function btnAction(b){
+  switch(b.type){
+    case 'scene':return{type:'scene',scene:b.scene};
+    case 'toggleMute':return{type:'toggleMute',input:b.input};
+    case 'effect':return{type:'effect',effect:b.effect||'text',text:b.text||''};
+    case 'sound':return{type:'sound',file:b.file};
+    case 'marker':return{type:'marker',label:''};
+    case 'announce':return{type:'announce',id:b.ann};
+    case 'ad':return{type:'ad',length:b.length||30};
+    default:return{type:b.type};
+  }
+}
+function renderControl(){
+  $('#profiles').innerHTML=(S.config.profiles||[]).map(p=>'<button class="tile prof '+(S.activeProfile===p.id?'active':'')+'" data-act=\''+esc(JSON.stringify({type:'profile',id:p.id}))+'\'><i class="ph-fill ph-'+esc(profIcon(p))+'"></i><span>'+esc(p.label)+'</span></button>').join('');
+  const isSfx=b=>b.type==='sound'||b.type==='stopSounds';
+  const isQuick=b=>b.type==='toggleMute'||b.type==='marker'||b.type==='replay';
+  const all=S.config.buttons||[];
+  $('#buttons').innerHTML=all.filter(b=>!isSfx(b)&&!isQuick(b)).map(b=>tileHTML(b)).join('')||'<p class="muted">Sem atalhos.</p>';
+  $('#sfxGrid').innerHTML=all.filter(isSfx).map(b=>tileHTML(b)).join('')||'<p class="muted">Nenhum efeito ainda. Crie botões na aba Sons.</p>';
+  $('#quickGrid').innerHTML=all.filter(isQuick).map(b=>tileHTML(b,'sm')).join('')+'<button class="tile sm" data-act=\'{"type":"toggleRecord"}\' style="--c:#ef4444"><i class="ph-fill ph-record"></i><span>Gravar</span></button>';
+  $('#brbBtn').classList.toggle('brbon',S.brb);$('#brbLabel').textContent=S.brb?'Voltei (sair da pausa)':'Tela "Já volto"';
+  renderSession();
+}
+function renderSession(){
+  const s=S.session||{};
+  const it=[['Doações',`R$ ${(s.donationTotal||0).toFixed(2).replace('.',',')}`],['Nº de doações',s.donationCount||0],['Follows',s.follows||0],['Subs',s.subs||0],['Raids',s.raids||0],['Bits',s.bits||0]];
+  $('#session').innerHTML=it.map(([l,v])=>`<div class="stat"><b>${v}</b><span>${l}</span></div>`).join('');
+  $('#goalMini').innerHTML=(S.goals||[]).map(g=>{const p=Math.min(100,g.target?g.current/g.target*100:0);const f=v=>g.unit==='R$'?'R$ '+Number(v).toFixed(2).replace('.',','):v;
+    return `<div class="goalmini"><div class="t"><span>${esc(g.label)}</span><span>${f(g.current)} / ${f(g.target)}</span></div><div class="bar"><i style="width:${p}%"></i></div></div>`}).join('')||'<p class="muted">Nenhuma meta criada.</p>';
+}
+function setObs(on){S.obsConnected=on;const p=$('#obsPill');p.classList.toggle('on',on);p.innerHTML=`<span class="dot"></span>OBS ${on?'conectado':'desconectado'}`;if(typeof loadMixer==='function')loadMixer()}
+function setTw(t){S.twitch=t;const ok=t.status==='connected';const p=$('#twPill');p.classList.toggle('on',ok);p.innerHTML=`<span class="dot"></span>Twitch ${ok?esc(t.login||'conectada'):'sem login'}`;const un=$('#userName'),us=$('#userSub');if(un){un.textContent=ok?(t.login||'conectada'):'Twitch sem login';us.textContent=ok?'Conta conectada':'Conecte sua conta'}renderTwitchStatus()}
+function setHealth(h){
+  const lp=$('#livePill');lp.classList.toggle('rec',!!h.streaming);lp.textContent=h.streaming?`REC ${h.timecode?.split('.')[0]||''}`:'Offline';
+  S.scene=h.scene;const sc=$('#phaseScene');if(sc)sc.innerHTML='<i class="ph-fill ph-monitor" style="color:var(--ok)"></i>'+esc(h.scene||'—');
+  document.querySelectorAll('#buttons .tile').forEach(b=>b.classList.toggle('live',b.dataset.scene===h.scene));
+  const cls=(v,w,b)=>v>=b?'bad':v>=w?'warn':'good';
+  const items=[['CPU %',h.cpu,cls(h.cpu,60,85)],['FPS',h.fps,h.fps<28?'bad':'good'],['Render ms',h.renderMs,cls(h.renderMs,10,16)],['Perda rede %',h.dropRecentPct,cls(h.dropRecentPct,1,5)],['Congest. rede',h.congestion,cls(h.congestion,.3,.6)],['Frames perdidos',h.dropped,'good']];
+  $('#stats').innerHTML=items.map(([l,v,c])=>`<div class="stat ${c}"><b>${v}</b><span>${l}</span></div>`).join('');
+}
+
+/* ---------- editor de linhas genérico ---------- */
+const F_CMD=[{k:'trigger',ph:'!comando',w:1},{k:'response',ph:'Resposta no chat',w:4},{k:'cooldown',ph:'seg',t:'number',w:1}];
+const F_TIMER=[{k:'message',ph:'Mensagem',w:4},{k:'everyMin',ph:'min',t:'number',w:1},{k:'minLines',ph:'msgs',t:'number',w:1}];
+const F_GOAL=[{k:'label',ph:'Nome da meta',w:3},{k:'type',t:'select',opts:[['donation','Doações (R$)'],['follow','Follows'],['sub','Subs']],w:2},{k:'unit',ph:'R$ ou vazio',w:1},{k:'current',t:'number',ph:'atual',w:1},{k:'target',t:'number',ph:'alvo',w:1}];
+function rowsHTML(items,fields){return items.map(it=>`<div class="rowgrid" data-id="${esc(it.id||'')}">`+fields.map(f=>f.t==='select'
+  ?`<select class="f" data-k="${f.k}" style="flex:${f.w||1}">${f.opts.map(o=>`<option value="${o[0]}" ${it[f.k]===o[0]?'selected':''}>${o[1]}</option>`).join('')}</select>`
+  :`<input class="f" data-k="${f.k}" type="${f.t||'text'}" step="any" value="${esc(it[f.k]??'')}" placeholder="${esc(f.ph||'')}" style="flex:${f.w||1}">`).join('')+`<button class="act del" data-del><i class="ph ph-x"></i></button></div>`).join('')}
+function addRow(sel,fields,def={}){$(sel).insertAdjacentHTML('beforeend',rowsHTML([{...def}],fields))}
+function readRows(sel,fields){return [...document.querySelectorAll(sel+' .rowgrid')].map(r=>{const o={};if(r.dataset.id)o.id=r.dataset.id;
+  fields.forEach(f=>{let v=r.querySelector(`[data-k="${f.k}"]`).value;if(f.t==='number')v=Number(v)||0;o[f.k]=v});return o}).filter(o=>Object.values(o).some(v=>v!==''&&v!==0))}
+
+/* ---------- metas ---------- */
+function renderGoals(){$('#goalRows').innerHTML=rowsHTML(S.goals||[],F_GOAL)}
+async function saveGoals(){const goals=readRows('#goalRows',F_GOAL).map((g,i)=>({...g,id:g.id||'g'+Date.now()+i}));const r=await api('/api/goals','PUT',{goals});toast(r.ok?'Metas salvas':'Erro');}
+async function resetSession(){await api('/api/session/reset','POST');toast('Sessão zerada');loadState()}
+
+/* ---------- Twitch / LivePix / bot ---------- */
+function renderTwitchStatus(){
+  const t=S.twitch||{};let h='';
+  if(t.status==='connected')h=`<i class="ph ph-check"></i> Conectada como <b>${esc(t.login)}</b>. Eventos ao vivo: ${t.eventsub?.connected?'<span style="color:var(--ok)">ativos</span>':'conectando...'}`+(t.eventsub?.errors?.length?`<br><span style="color:var(--warn)">Avisos: ${t.eventsub.errors.map(esc).join(' | ')}</span>`:'');
+  else if(t.status==='pending')h=`Abra <a href="${esc(t.uri)}" target="_blank" rel="noopener">${esc(t.uri)}</a> e digite o código:<div class="code">${esc(t.userCode)}</div>`;
+  else if(t.status==='error')h=`<span style="color:var(--bad)">${esc(t.error)}</span>`;
+  else h=t.clientIdSet?'Não conectada. Clique em Conectar Twitch.':'Preencha o Client ID e clique em Salvar.';
+  $('#twStatus').innerHTML=h;
+}
+function renderLivepixStatus(){
+  const l=S.livepix||{};let h='Preencha as chaves para ligar.';
+  if(l.configured){h=l.status==='ok'?`<span style="color:var(--ok)"><i class="ph ph-check"></i> Conectada</span>. ${l.received||0} doação(ões) recebida(s) nesta execução.`:l.status==='error'?`<span style="color:var(--bad)">${esc(l.error)}</span>`:'Conectando...'}
+  $('#lpStatus').innerHTML=h;
+}
+function renderTwitchTab(){
+  const c=S.config;
+  $('#twChannel').value=c.twitch?.channel||'';$('#twClient').value=c.twitch?.clientId||'';
+  $('#lpClient').value=c.livepix?.clientId||'';$('#lpSecret').placeholder=c.livepix?.hasSecret?'Secret salvo (deixe vazio para manter)':'Client Secret (fica só no seu PC)';$('#lpThanks').checked=c.livepix?.thanksInChat!==false;
+  $('#cmdRows').innerHTML=rowsHTML(c.commands||[],F_CMD);$('#timerRows').innerHTML=rowsHTML(c.timers||[],F_TIMER);
+  renderTwitchStatus();renderLivepixStatus();
+}
+async function saveTwitch(){await put({twitch:{channel:$('#twChannel').value.trim(),clientId:$('#twClient').value.trim()}})}
+async function twLogin(){await saveTwitch();const r=await api('/api/twitch/login','POST');if(!r.ok)toast('Erro: '+r.error,4000)}
+async function twLogout(){await api('/api/twitch/logout','POST');toast('Desconectada')}
+async function twApply(){const r=await api('/api/twitch/channel','POST',{title:$('#twTitle').value.trim(),category:$('#twCat').value.trim()});toast(r.ok?'Atualizado: '+r.detail:'Erro: '+r.error,3500)}
+async function saveLivepix(){await put({livepix:{clientId:$('#lpClient').value.trim(),clientSecret:$('#lpSecret').value.trim(),thanksInChat:$('#lpThanks').checked}});$('#lpSecret').value=''}
+async function saveBot(){await put({commands:readRows('#cmdRows',F_CMD),timers:readRows('#timerRows',F_TIMER)})}
+
+/* ---------- perfis ---------- */
+const volText=v=>Object.entries(v||{}).map(([k,d])=>`${k}=${d}`).join('\n');
+const srcText=a=>(a||[]).map(s=>`${s.scene?s.scene+'>':''}${s.source}=${s.enabled?'on':'off'}`).join('\n');
+function profCard(p){return `<div class="pcard" data-id="${esc(p.id)}">
+  <div class="rowgrid"><input class="f" data-k="icon" value="${esc(profIcon(p))}" style="flex:0 0 130px" placeholder="ícone (crosshair)"><input class="f" data-k="label" value="${esc(p.label)}" placeholder="Nome do jogo"><input class="f" data-k="scene" value="${esc(p.scene)}" placeholder="Cena no OBS"><button class="act del" data-del><i class="ph ph-x"></i></button></div>
+  <div class="rowgrid"><input class="f" data-k="twitchTitle" value="${esc(p.twitchTitle)}" placeholder="Título da live na Twitch" style="flex:3"><input class="f" data-k="twitchCategory" value="${esc(p.twitchCategory)}" placeholder="Categoria na Twitch" style="flex:2"></div>
+  <div class="rowgrid"><span class="muted">Cores dos overlays</span><input type="color" class="f" data-k="accent" value="${esc(p.accent||'#8b5cf6')}" style="flex:0 0 48px"><input type="color" class="f" data-k="accent2" value="${esc(p.accent2||'#db2777')}" style="flex:0 0 48px"></div>
+  <div class="muted">Volumes (uma linha por fonte, em dB, ex.: <code>Mic/Aux=-6</code>)</div><textarea data-k="volumes" placeholder="Jogo=-12">${esc(volText(p.volumes))}</textarea>
+  <div class="muted" style="margin-top:8px">Fontes ligadas ou desligadas (ex.: <code>Minimapa=off</code> ou <code>Cena&gt;Fonte=on</code>)</div><textarea data-k="sources" placeholder="Webcam=on">${esc(srcText(p.sources))}</textarea></div>`}
+function renderProfiles(){
+  $('#profEditor').innerHTML=(S.config.profiles||[]).map(profCard).join('');
+  const c=S.config;$('#auMic').value=c.audio?.mic||'';$('#brbScene').value=c.brb?.scene||'';$('#brbSound').value=c.brb?.sound||'';$('#brbMute').checked=c.brb?.muteMic!==false;
+}
+function addProfile(){$('#profEditor').insertAdjacentHTML('beforeend',profCard({id:'p'+Date.now(),icon:'game-controller',label:'Novo jogo',scene:'',twitchTitle:'',twitchCategory:'',volumes:{},sources:[]}))}
+function readProfiles(){return [...document.querySelectorAll('#profEditor .pcard')].map(c=>{
+  const g=k=>c.querySelector(`[data-k="${k}"]`).value;
+  const volumes={};g('volumes').split('\n').forEach(l=>{const i=l.lastIndexOf('=');if(i>0&&l.slice(i+1).trim()!==''){volumes[l.slice(0,i).trim()]=Number(l.slice(i+1))}});
+  const sources=g('sources').split('\n').map(l=>{const i=l.lastIndexOf('=');if(i<=0)return null;let name=l.slice(0,i).trim(),scene='';if(name.includes('>')){[scene,name]=name.split('>').map(x=>x.trim())}return{...(scene?{scene}:{}),source:name,enabled:/^(on|sim|1|true|ligada)/i.test(l.slice(i+1).trim())}}).filter(Boolean);
+  return{...((S.config.profiles||[]).find(x=>x.id===c.dataset.id)||{}),id:c.dataset.id,icon:g('icon'),label:g('label'),scene:g('scene'),twitchTitle:g('twitchTitle'),twitchCategory:g('twitchCategory'),accent:g('accent'),accent2:g('accent2'),volumes,sources}})}
+async function saveProfiles(){await put({profiles:readProfiles()});loadState()}
+async function saveAudio(){await put({audio:{mic:$('#auMic').value.trim()},brb:{scene:$('#brbScene').value.trim(),sound:$('#brbSound').value.trim(),muteMic:$('#brbMute').checked}})}
+
+/* ---------- clipes ---------- */
+let mk=[];
+async function loadMarkers(){
+  const r=await api('/api/markers');mk=r.markers||[];
+  $('#ffwarn').hidden=!!r.ffmpeg;$('#cutBefore').value=$('#cutBefore').dataset.set?$('#cutBefore').value:r.before;$('#cutAfter').value=$('#cutAfter').dataset.set?$('#cutAfter').value:r.after;
+  const gm=id=>(S.config.profiles||[]).find(p=>p.id===id)?.label||'—';
+  $('#mk').innerHTML=mk.slice().reverse().map(m=>{
+    const src=(m.recordPath?'gravação':'')+(m.recordPath&&m.replayPath?' + ':'')+(m.replayPath?'replay':'')||'<span class="muted">sem arquivo ainda</span>';
+    const files=(m.clips||[]).map(c=>`<a href="/clips/${encodeURIComponent(c.file)}" target="_blank" rel="noopener">${c.vertical?'vertical':'16:9'}</a>`).join(' · ');
+    return `<tr><td><b>${esc((m.timecode||'—').split('.')[0])}</b></td><td><input data-name="${m.id}" value="${esc(m.label)}" placeholder="Sem nome" style="width:100%;min-width:150px"></td><td>${esc(gm(m.profile))}${m.auto?'<span class="pill sm">auto</span>':''}</td><td>${src}${files?`<div>${files}</div>`:''}</td>
+    <td><div class="row" style="margin:0"><button class="act sec sm" data-cut="${m.id}">16:9</button><button class="act sec sm" data-cut="${m.id}" data-v="1">Vertical</button><button class="act sec sm" data-meta="${m.id}">Texto</button><button class="act sec sm" data-twclip="${m.id}" title="Criar clipe na Twitch"><i class="ph ph-twitch-logo"></i></button><button class="act del sm" data-delmk="${m.id}" title="Apagar marcação"><i class="ph ph-trash"></i></button></div>${m.twitchClip?'<div><a href="'+esc(m.twitchClip.url)+'" target="_blank" rel="noopener">clipe da Twitch</a></div>':''}</td></tr>`}).join('')||'<tr><td colspan="5" class="muted">Nenhuma marcação ainda</td></tr>';
+}
+document.addEventListener('change',async e=>{
+  if(e.target.dataset.name)await api('/api/markers/'+e.target.dataset.name,'PUT',{label:e.target.value});
+  if(e.target.id==='cutBefore'||e.target.id==='cutAfter')e.target.dataset.set='1';
+});
+document.addEventListener('click',async e=>{
+  const c=e.target.closest('[data-cut]');
+  if(c){toast('Cortando... pode levar alguns segundos',6000);const r=await api('/api/clips/cut','POST',{id:c.dataset.cut,vertical:!!c.dataset.v,before:Number($('#cutBefore').value),after:Number($('#cutAfter').value)});toast(r.ok?'Corte pronto: '+r.file:'Erro: '+r.error,5000);loadMarkers()}
+  const m=e.target.closest('[data-meta]');
+  if(m){const r=await api(`/api/markers/${m.dataset.meta}/meta`);if(!r.ok)return toast('Erro: '+r.error);const x=r.meta;const full=`${x.title}\n\n${x.description}\n\n${x.hashtags}`;
+    const b=$('#metaBox');b.hidden=false;b.innerHTML=`<b>Sugestão para postar</b><p style="margin:6px 0">${esc(x.title)}</p><p class="muted" style="margin:6px 0">${esc(x.description)}<br>${esc(x.hashtags)}</p><button class="act sm" id="copyMeta">Copiar tudo</button>`;
+    $('#copyMeta').onclick=()=>{try{navigator.clipboard.writeText(full).then(()=>toast('Copiado'),()=>toast('Não foi possível copiar'))}catch{toast('Não foi possível copiar')}}}
+});
+async function mark(){const i=$('#mkName');await act({type:'marker',label:i.value.trim()});i.value=''}
+async function clearMarkers(){await api('/api/markers','DELETE');loadMarkers()}
+
+/* ---------- checklist ---------- */
+const CHECK=['Internet por cabo e upload testado','OBS aberto como administrador','Cena certa e jogo capturando (Game Capture)','Microfone com nível bom (sem estourar)','Áudio do jogo e do Discord separados','Alertas de follow e LivePix testados (aba Controle)','Título e categoria definidos (perfil do jogo aplicado)','Buffer de replay e gravação do OBS ligados (para os cortes)','Twitch e LivePix conectadas (aba Twitch e Bot)','Notificações do Windows desativadas','Água, boa luz e webcam enquadrada'];
+function renderCheck(){let s={};try{s=JSON.parse(localStorage.getItem('chk')||'{}')}catch{}
+  $('#checklist').innerHTML=CHECK.map((c,i)=>`<label><input type="checkbox" ${s[i]?'checked':''} onchange="saveChk(${i},this.checked)">${c}</label>`).join('')}
+function saveChk(i,v){let s={};try{s=JSON.parse(localStorage.getItem('chk')||'{}')}catch{}s[i]=v;try{localStorage.setItem('chk',JSON.stringify(s))}catch{}}
+function resetCheck(){try{localStorage.removeItem('chk')}catch{}renderCheck()}
+
+/* ---------- editor de botões ---------- */
+const TYPES=['scene','toggleMute','marker','replay','effect','sound','stopSounds','announce','ad'];
+const q=s=>esc(s||'');
+function renderEditor(){
+  $('#editor').innerHTML=(S.config.buttons||[]).map(b=>{
+    const param=b.type==='scene'?b.scene:b.type==='toggleMute'?b.input:b.type==='effect'?b.text:b.type==='sound'?b.file:b.type==='announce'?b.ann:b.type==='ad'?b.length:'';
+    return `<div class="rowgrid" data-id="${q(b.id)}"><input class="f" data-k="icon" value="${q(b.icon)}" style="flex:0 0 120px" placeholder="ícone (siren)"><input class="f" data-k="label" value="${q(b.label)}" placeholder="Nome"><select class="f" data-k="type">${TYPES.map(t=>`<option ${t===b.type?'selected':''}>${t}</option>`).join('')}</select><input class="f" data-k="param" value="${q(param)}" placeholder="Cena / fonte / texto / arquivo" style="flex:2"><input type="color" class="f" data-k="color" value="${q(b.color||'#334155')}" style="flex:0 0 48px"><button class="act del" data-del><i class="ph ph-x"></i></button></div>`}).join('')}
+function readEditor(){return [...document.querySelectorAll('#editor .rowgrid')].map((r,i)=>{const g=k=>r.querySelector(`[data-k="${k}"]`).value;const type=g('type'),p=g('param');
+  const b={id:r.dataset.id||'b'+Date.now()+i,label:g('label'),icon:g('icon'),type,color:g('color')};
+  if(type==='scene')b.scene=p;if(type==='toggleMute')b.input=p;if(type==='effect'){b.effect='text';b.text=p}if(type==='sound')b.file=p;if(type==='announce')b.ann=p;if(type==='ad')b.length=Number(p)||30;return b})}
+function addBtn(){$('#editor').insertAdjacentHTML('beforeend','<div class="rowgrid" data-id=""><input class="f" data-k="icon" value="star" style="flex:0 0 120px" placeholder="ícone (siren)"><input class="f" data-k="label" value="Novo"><select class="f" data-k="type">'+TYPES.map(t=>`<option>${t}</option>`).join('')+'</select><input class="f" data-k="param" placeholder="Cena / fonte / texto / arquivo" style="flex:2"><input type="color" class="f" data-k="color" value="#334155" style="flex:0 0 48px"><button class="act del" data-del><i class="ph ph-x"></i></button></div>')}
+async function saveBtns(){await put({buttons:readEditor()});loadState()}
+
+/* ---------- estado e websocket ---------- */
+function renderAll(){renderScore();renderTriggers();renderAutoClips();renderControl();renderGoals();renderTwitchTab();renderProfiles();renderEditor();renderVisual();renderAnn()}
+async function loadState(){const r=await api('/api/state');if(!r.ok)return;S={...S,...r};setObs(r.obsConnected);if(r.health)setHealth(r.health);setTw(r.twitch);renderAll()}
+function addChat(html,cls=''){const l=$('#chatlist');const d=document.createElement('div');d.className=cls;d.innerHTML=html;l.appendChild(d);while(l.children.length>300)l.firstChild.remove();l.scrollTop=l.scrollHeight}
+function connectWs(){
+  ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');
+  ws.onmessage=e=>{const m=JSON.parse(e.data);
+    if(m.type==='obs')setObs(m.connected);
+    if(m.type==='health')setHealth(m.health);
+    if(m.type==='scene'){S.scene=m.scene;const sc=$('#phaseScene');if(sc)sc.innerHTML='<i class="ph-fill ph-monitor" style="color:var(--ok)"></i>'+esc(m.scene);document.querySelectorAll('#buttons .tile').forEach(b=>b.classList.toggle('live',b.dataset.scene===m.scene))}
+    if(m.type==='config')loadState();
+    if(m.type==='profile'){S.activeProfile=m.id;renderControl()}
+    if(m.type==='phase'){S.phase=m.phase;renderPhase()}
+    if(m.type==='score'){S.score=m.score;renderScore()}
+    if(m.type==='cutProgress')renderCut(m.job);
+    if(m.type==='mixer'){const row=document.querySelector('.mixrow[data-name="'+CSS.escape(m.name)+'"]');if(row&&!(Date.now()-(mixDrag[m.name]||0)<800)){row.querySelector('input[type=range]').value=Math.max(-60,Math.min(6,m.db));row.querySelector('.db').textContent=m.db+' dB'}}
+    if(m.type==='mute'){const row=document.querySelector('.mixrow[data-name="'+CSS.escape(m.input)+'"]');if(row){row.classList.toggle('muted-in',!!m.muted);const ic=row.querySelector('.mixmute i');if(ic)ic.className='ph-fill ph-'+mixIcon(m.input,m.muted)}}
+    if(m.type==='meters'){for(const [n,db] of Object.entries(m.levels||{})){const row=document.querySelector('.mixrow[data-name="'+CSS.escape(n)+'"]');if(row)row.querySelector('.meter').style.width=Math.max(0,Math.min(100,(db+60)/60*100))+'%'}}
+    if(m.type==='brb'){S.brb=m.active;renderControl()}
+    if(m.type==='session'){S.session=m.session;S.goals=m.goals;renderSession();renderGoals()}
+    if(m.type==='twitchStatus')setTw(m.twitch);
+    if(m.type==='livepixStatus'){S.livepix=m.livepix;renderLivepixStatus()}
+    if(m.type==='markers')loadMarkers();
+    if(m.type==='feed'){FEED.unshift(m.item);if(FEED.length>60)FEED.pop();renderFeed()}
+    if(m.type==='overview'){OV=m.overview;renderOverview()}
+    if(m.type==='alertState'){$('#alertInfo').textContent=`(${m.queued} na fila${m.paused?', pausada':''})`;$('#pauseBtn').innerHTML=m.paused?'<i class="ph ph-play"></i>Retomar':'<i class="ph ph-pause"></i>Pausar'}
+    if(m.type==='chat')addChat(`<b style="color:${esc(m.color)}">${esc(m.user)}</b>${esc(m.text)}`,'msg'+(m.firstMsg?' first':''));
+    if(m.type==='twitchEvent'&&!m.test)addChat(`<i class="ph-fill ph-star"></i> ${esc(m.text)}`,'evt');
+    if(m.type==='donation'&&!m.test)addChat(`<i class="ph-fill ph-currency-circle-dollar"></i> ${esc(m.name)} doou R$${Number(m.amount).toFixed(2)} ${esc(m.message||'')}`,'evt');
+    if(m.type==='botSay')addChat(`<i class="ph-fill ph-robot"></i> ${esc(m.text)}${m.error?' <i>(não enviado: '+esc(m.error)+')</i>':''}`,'bot');
+  };
+  ws.onclose=()=>setTimeout(connectWs,2000);
+}
+
+/* ---------- visual: marca, layout, prévia e cenas no OBS ---------- */
+const F_SOC=[{k:'label',ph:'Rede (ex.: Discord)',w:1},{k:'text',ph:'Endereço ou @',w:2}];
+let pvGame=null;
+function renderVisual(){
+  const c=S.config,b=c.brand||{};
+  $('#vName').value=b.name||'';$('#vTag').value=b.tagline||'';$('#vLp').value=b.livepixUrl||'';$('#vQrEvery').value=b.qrEverySec||300;$('#vQrAlways').checked=b.qrAlways!==false;$('#vScore').value=b.showScore||'lobby';
+  $('#socRows').innerHTML=rowsHTML(b.socials||[],F_SOC);
+  $('#vCam').value=c.camera?.source||'';$('#vCamDev').value=c.camera?.device||'';
+  const DEF_CAM={cs2:{x:24,y:400,w:360,h:203}},DEF=id=>DEF_CAM[id]||{x:24,y:24,w:360,h:203};
+  const detOf=p=>(p.detect&&p.detect.type)||(p.id==='cs2'?'cs2':p.id==='lol'?'lol':'manual');
+  $('#layRows').innerHTML=(c.profiles||[]).map(p=>{const g=(p.layout&&p.layout.game&&p.layout.game.cam)||(p.layout&&p.layout.cam)||{};const d=DEF(p.id);const cam={x:g.x??d.x,y:g.y??d.y,w:g.w??d.w,h:g.h??d.h};const det=detOf(p);
+    const opt=(v,t)=>`<option value="${v}" ${det===v?'selected':''}>${t}</option>`;
+    return `<div class="rowgrid" data-pid="${esc(p.id)}"><span style="flex:0 0 110px;align-self:center;display:flex;align-items:center;gap:8px"><i class="ph-fill ph-${esc(profIcon(p))}"></i>${esc(p.label)}</span>
+      <select class="f" data-k="det" style="flex:2" title="Como o app percebe que a partida começou">${opt('cs2','Automático: integração do CS2')}${opt('lol','Automático: API do LoL')}${opt('process','Pelo programa aberto (.exe)')}${opt('manual','Só pelos botões')}</select>
+      <input class="f" data-k="proc" value="${esc((p.detect&&p.detect.process)||'')}" placeholder="programa.exe" title="Nome do programa do jogo (só para 'Pelo programa aberto')">
+      <input class="f" data-k="x" type="number" value="${cam.x}" title="X da webcam na partida" placeholder="X"><input class="f" data-k="y" type="number" value="${cam.y}" title="Y da webcam na partida" placeholder="Y"><input class="f" data-k="w" type="number" value="${cam.w}" title="Largura da webcam" placeholder="Larg."><input class="f" data-k="h" type="number" value="${cam.h}" title="Altura da webcam" placeholder="Alt."></div>`}).join('')
+    +'<p class="muted">Na partida, X e Y são o canto superior esquerdo da webcam numa tela de 1920x1080 (padrão: no LoL canto de cima à esquerda; no CS2 lateral esquerda mais abaixo, porque o radar ocupa o canto). Ajuste olhando o jogo e a prévia abaixo. Se o Ron Run não tiver detecção automática, informe o nome do programa (ex.: <code>RonRun.exe</code>, veja no Gerenciador de Tarefas) ou use só os botões.</p>';
+  $('#pvChips').innerHTML=(c.profiles||[]).map(p=>`<button class="chip act sec sm" data-id="${esc(p.id)}" aria-pressed="false" onclick="showPreview('${esc(p.id)}')"><i class="ph-fill ph-${esc(profIcon(p))}"></i>${esc(p.label)}</button>`).join('');
+  renderPhase();
+}
+let pvPhase='lobby';
+async function showPreview(id,ph){
+  pvGame=id||pvGame||((S.config.profiles||[])[0]||{}).id;if(!pvGame)return;if(ph)pvPhase=ph;
+  document.querySelectorAll('#pvChips .chip').forEach(c=>{const on=c.dataset.id===pvGame;c.style.outline=on?'2px solid var(--accent)':'none'});
+  document.querySelectorAll('#pvPhase .chip').forEach(c=>{c.style.outline=c.dataset.ph===pvPhase?'2px solid var(--accent)':'none'});
+  const r=await api('/api/layout/'+encodeURIComponent(pvGame)+'?phase='+pvPhase);if(!r.ok)return;const L=r.layout;
+  const box=(rc,cls)=>`<div class="${cls}" style="left:${rc.x}px;top:${rc.y}px;width:${rc.w}px;height:${rc.h}px"></div>`;
+  const src=window.__previewDoc?`srcdoc="${esc(window.__previewDoc(pvGame,pvPhase))}"`:`src="/overlays/frame.html?game=${encodeURIComponent(pvGame)}&phase=${pvPhase}&preview=1"`;
+  $('#pvin').innerHTML=box(L.rects.game,'fg')+box(L.rects.cam,'fc')+`<iframe ${src} title="Prévia da moldura" style="position:absolute;left:0;top:0;width:1920px;height:1080px;border:0;background:transparent"></iframe>`;
+  fitPv();
+}
+/* ---------- fase da partida (lobby ou partida) ---------- */
+function renderPhase(){
+  const ph=S.phase||{mode:'auto',current:'lobby',detected:false,source:'manual',gsiActive:false};
+  const names={auto:'Automático',lobby:'Lobby',game:'Em partida'};
+  document.querySelectorAll('[data-phase]').forEach(b=>b.classList.toggle('sel',b.dataset.phase===ph.mode));
+  const src={cs2:'integração do CS2',lol:'API do LoL',process:'programa aberto',manual:'só pelos botões'}[ph.source]||ph.source;
+  const pi=$('#phaseInfo');
+  if(pi)pi.innerHTML=(ph.current==='game'?'Em partida: jogo em tela cheia, só webcam e QR.':'Lobby: moldura completa.')+' Modo '+names[ph.mode].toLowerCase()+'.';
+  const so=$('#phaseSource');if(so)so.innerHTML=esc(src)+(ph.source==='cs2'?(ph.gsiActive?' <i class="ph ph-check" style="color:var(--ok)"></i>':' <i class="ph ph-clock" style="color:var(--amber)"></i>'):'');
+  const sc=$('#phaseScene');if(sc&&S.scene)sc.innerHTML='<i class="ph-fill ph-monitor" style="color:var(--ok)"></i>'+esc(S.scene);
+  const pill=$('#phasePill');if(pill)pill.innerHTML=ph.current==='game'?'<i class="ph-fill ph-game-controller"></i>Em partida':'<i class="ph-fill ph-house-line"></i>Lobby';
+  const gi=$('#gsiInfo');if(gi)gi.innerHTML=ph.gsiActive?'<span style="color:var(--ok)"><i class="ph ph-check"></i> Recebendo dados do CS2.</span>':'Ainda não recebi dados do CS2. Instale a integração e reinicie o jogo.';
+}
+document.addEventListener('click',async e=>{const b=e.target.closest('[data-phase]');if(!b)return;const r=await act({type:'phase',mode:b.dataset.phase});if(r&&r.ok&&r.phase){S.phase=r.phase;renderPhase()}});
+async function installGsi(){const r=await api('/api/cs2-gsi/install','POST');toast(r.ok?'Instalado em '+r.file+'. Reinicie o CS2.':'Erro: '+r.error,6000)}
+function fitPv(){const pv=$('#pv'),i=$('#pvin');if(pv&&i&&pv.clientWidth)i.style.transform='scale('+(pv.clientWidth/1920)+')'}
+window.addEventListener('resize',fitPv);
+async function saveVisual(){
+  const c=S.config;
+  const profiles=(c.profiles||[]).map(p=>{const row=document.querySelector(`#layRows [data-pid="${p.id}"]`);if(!row)return p;
+    const g=k=>Number(row.querySelector(`[data-k="${k}"]`).value);
+    return{...p,layout:{game:{cam:{x:g('x'),y:g('y'),w:g('w'),h:g('h')}}},detect:{type:row.querySelector('[data-k="det"]').value,process:row.querySelector('[data-k="proc"]').value.trim()}}});
+  const r=await put({profiles,brand:{name:$('#vName').value.trim(),tagline:$('#vTag').value.trim(),livepixUrl:$('#vLp').value.trim(),qrEverySec:Number($('#vQrEvery').value)||300,qrAlways:$('#vQrAlways').checked,showScore:$('#vScore').value,socials:readRows('#socRows',F_SOC)},camera:{source:$('#vCam').value.trim(),device:$('#vCamDev').value.trim()}});
+  await loadState();showPreview();return r;
+}
+function showScene(r){
+  const b=$('#sceneRes');b.hidden=false;
+  if(!r.ok){b.innerHTML=`<div class="no"><i class="ph ph-x"></i> ${esc(r.error)}</div>`;return}
+  b.innerHTML=(r.dry?'<div class="muted">Plano (nada foi alterado no OBS ainda)</div>':'')+r.steps.map(s=>`<div class="${s.ok?'ok':'no'}">${s.ok?'<i class="ph ph-check"></i>':'<i class="ph ph-x"></i>'} ${esc(s.name)}${s.detail?' — '+esc(s.detail):''}</div>`).join('');
+}
+async function scenePlan(){await saveVisual();showScene(await api('/api/scenes/plan'))}
+async function sceneBuild(){await saveVisual();toast('Montando as cenas...',4000);showScene(await api('/api/scenes/build','POST'))}
+
+/* ---------- anúncios no chat e intervalo comercial ---------- */
+const ANN_COL={primary:'#9146ff',blue:'#2563eb',green:'#16a34a',orange:'#ea580c',purple:'#7c3aed'};
+const F_ANN=[{k:'icon',ph:'ícone (ex.: heart)',w:1.3},{k:'label',ph:'Nome do botão',w:1.2},{k:'text',ph:'Texto do anúncio',w:4},{k:'color',t:'select',opts:[['primary','Cor do canal'],['blue','Azul'],['green','Verde'],['orange','Laranja'],['purple','Roxo']],w:1.2}];
+function annBtns(){return (S.config.announcements||[]).map(a=>'<button class="tile" style="--c:'+(ANN_COL[a.color]||ANN_COL.primary)+'" data-act=\''+esc(JSON.stringify({type:'announce',id:a.id}))+'\'><i class="ph-fill ph-'+esc(a.icon||'megaphone')+'"></i><span>'+esc(a.label)+'</span><small>'+esc(a.text)+'</small></button>').join('')||'<p class="muted">Nenhum anúncio salvo. Crie na aba Anúncios.</p>'}
+function renderAnn(){
+  $('#annGrid').innerHTML=annBtns();$('#annGridCtl').innerHTML=annBtns();
+  $('#annRows').innerHTML=rowsHTML(S.config.announcements||[],F_ANN);
+  $('#adWarn').checked=(S.config.ads||{}).warnChat!==false;
+  $('#adBtns').innerHTML=[30,60,90,120,150,180].map(n=>`<button class="act" onclick="runAd(${n})">${n}s</button>`).join('');
+}
+async function saveAnn(){const list=readRows('#annRows',F_ANN).map((a,i)=>({...a,id:a.id||'a'+Date.now()+i}));await put({announcements:list});loadState()}
+async function sendAnn(){const t=$('#annText').value.trim();if(!t)return toast('Escreva o texto do anúncio');const r=await api('/api/twitch/announce','POST',{message:t,color:$('#annColor').value});toast(r.ok?'Anúncio enviado':'Erro: '+r.error,4000);if(r.ok)$('#annText').value=''}
+async function runAd(n){const r=await api('/api/twitch/ad','POST',{length:n});toast(r.ok?`Anúncio de ${r.ad.length}s iniciado`:'Erro: '+r.error,5000);if(r.ok)setTimeout(loadAds,2500)}
+async function snoozeAd(){const r=await api('/api/twitch/ads/snooze','POST');toast(r.ok?'Próximo anúncio adiado':'Erro: '+r.error,4000);if(r.ok)loadAds()}
+async function saveAdWarn(){await put({ads:{warnChat:$('#adWarn').checked}})}
+let adNext=null;
+async function loadAds(){const r=await api('/api/twitch/ads');adNext=r.ok&&r.ads?r.ads:null;renderAdInfo(r.ok?null:r.error,r.ok&&!r.ads)}
+function renderAdInfo(err,none){
+  const el=$('#adInfo');if(!el)return;
+  if(err){el.innerHTML='<span style="color:var(--warn)">'+esc(err)+'</span>';return}
+  if(none||!adNext||!adNext.nextAt){el.textContent='Sem anúncio agendado agora.';return}
+  const m=Math.round((adNext.nextAt-Date.now())/60000);
+  el.innerHTML='Próximo anúncio automático: <b>'+(m>0?'em ~'+m+' min':'a qualquer momento')+'</b>'+(adNext.snoozes!=null?' · adiamentos disponíveis: '+adNext.snoozes:'');
+}
+
+/* ---------- visão geral: espectadores, eventos e quem mais fala ---------- */
+let OV=null,FEED=[],CHATSUM={perMin:0,total:0,top:[]};
+const fmtDur=s=>{s=Math.max(0,Math.floor(s));return [Math.floor(s/3600),Math.floor(s%3600/60),s%60].map(n=>String(n).padStart(2,'0')).join(':')};
+async function loadOverview(){const r=await api('/api/overview');if(!r.ok)return;OV=r.twitch;FEED=r.feed||[];CHATSUM=r.chat||CHATSUM;S.session=r.session||S.session;S.ovConnected=r.connected;S.timecode=r.timecode;renderOverview();renderFeed()}
+function renderOverview(){
+  const o=OV,c=S.ovConnected,d='—';
+  const up=o&&o.live&&o.startedAt?fmtDur((Date.now()-o.startedAt)/1000):(S.timecode?String(S.timecode).split('.')[0]:d);
+  const am=o&&o.ads&&o.ads.nextAt?Math.round((o.ads.nextAt-Date.now())/60000):null;
+  const items=[['Espectadores',o?o.viewers:d],['Tempo no ar',up],['Seguidores',o&&o.followers!=null?o.followers:d],['Subs',o&&o.subs!=null?o.subs:d],['Msgs por min',CHATSUM.perMin],['Msgs na sessão',CHATSUM.total],['Próximo anúncio',am==null?d:am>0?am+' min':'agora']];
+  $('#ovStats').innerHTML=items.map(([l,v])=>`<div class="stat"><b>${esc(v)}</b><span>${l}</span></div>`).join('');
+  $('#ovInfo').innerHTML=c&&o?`<b>${esc(o.title||'Sem título')}</b><div class="muted">${esc(o.game||'Sem categoria')} · ${o.live?'<span style="color:var(--ok)">ao vivo na Twitch</span>':'offline na Twitch'}</div>`:'<span class="muted">Conecte a Twitch (aba Twitch e Bot) para ver espectadores, seguidores, subs, título e categoria. Eventos e quem mais fala funcionam mesmo sem login.</span>';
+  $('#topChat').innerHTML=(CHATSUM.top||[]).map((t,i)=>`<div class="toprow"><span>${i+1}. ${esc(t.user)}</span><span class="muted">${t.n} msg</span></div>`).join('')||'<span class="muted">Ninguém falou ainda nesta sessão.</span>';
+}
+const FI={donation:'currency-circle-dollar',follow:'heart',sub:'star',resub:'star',gift:'gift',raid:'rocket',bits:'diamond',ad:'broadcast',announce:'megaphone',phase:'game-controller'};
+function renderFeed(){const el=$('#feedList');if(!el)return;
+  el.innerHTML=FEED.map(f=>`<div class="feeditem"><time>${new Date(f.t).toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'})}</time><i class="ph-fill ph-${FI[f.kind]||'circle'}"></i><span>${esc(f.text)}</span></div>`).join('')||'<span class="muted">Nada por aqui ainda. Doações, follows, subs, raids e anúncios aparecem aqui.</span>'}
+setInterval(()=>{const on=$('#overview').classList.contains('active');if(on)renderOverview()},1000);
+setInterval(()=>{const on=$('#overview').classList.contains('active');if(on)loadOverview()},10000);
+
+/* ---------- janelas separadas: destacar uma aba ou um bloco ---------- */
+const QS=new URLSearchParams(location.search);const VIEW=QS.get('view'),WID=QS.get('w');
+const POP_SIZES={triggers:[760,820],control:[560,900],overview:[520,820],chat:[420,720],sounds:[620,720],ads:[520,780],clips:[780,700],goals:[620,560],twitch:[720,820],profiles:[720,820],visual:[840,900],check:[460,640],edit:[780,700]};
+const WIDGET_SIZES={score:[560,420],mixer:[420,520],game:[480,520],phase:[520,260],sfx:[560,460],sfxlib:[620,620],buttons:[540,420],announce:[520,360],stream:[440,240],alerts:[500,380],session:[500,420],health:[460,260],ovstats:[520,380],feed:[440,520],top:[360,340],ann:[520,420],ad:[520,360]};
+function openWin(url,name,w,h){
+  if(window.__demo){toast('As janelas separadas funcionam no app real, no seu PC.',3200);return}
+  const win=window.open(url,name,'popup=yes,width='+w+',height='+h+',left=80,top=80');
+  if(!win)toast('O navegador bloqueou a janela. Permita pop-ups para este endereço.',4500);
+}
+function popTab(){const b=document.querySelector('#tabs button.active');const t=b?b.dataset.t:'control';const sz=POP_SIZES[t]||[640,820];openWin('/?view='+t,'lc-'+t,sz[0],sz[1])}
+document.addEventListener('click',e=>{const p=e.target.closest('[data-pop]');if(!p)return;const w=p.dataset.pop;const sec=p.closest('section').id;const view=sec==='profiles-tab'?'profiles':sec;const sz=WIDGET_SIZES[w]||[520,420];openWin('/?view='+view+'&w='+w,'lc-w-'+w,sz[0],sz[1])});
+function initSolo(){
+  if(!VIEW)return;
+  document.body.classList.add('solo');
+  activateTab(VIEW);
+  if(WID)document.querySelectorAll('.blk').forEach(b=>{b.hidden=b.dataset.w!==WID});
+  const names={control:'Controle',overview:'Visão geral',chat:'Chat',sounds:'Sons',ads:'Anúncios',clips:'Clipes',goals:'Metas',twitch:'Twitch e Bot',profiles:'Perfis',visual:'Visual',check:'Checklist',edit:'Botões'};
+  const wn={score:'Placar',mixer:'Mixer de áudio',game:'Jogo',phase:'Fase da partida',sfx:'Efeitos sonoros',sfxlib:'Biblioteca de sons',buttons:'Botões',announce:'Anúncios',stream:'Transmissão',alerts:'Fila de alertas',session:'Sessão e metas',health:'Saúde da live',ovstats:'Agora',feed:'Eventos',top:'Quem mais fala',ann:'Anúncios',ad:'Comercial'};
+  document.title='Live Control · '+(wn[WID]||names[VIEW]||VIEW);
+}
+
+/* ---------- sons: biblioteca, pré-escuta e botões ---------- */
+let SND=[],prevAudio=null;
+const soundUrl=f=>window.__soundUrl?window.__soundUrl(f):'/sounds/'+encodeURIComponent(f);
+function previewSound(f){
+  try{if(prevAudio)prevAudio.pause();prevAudio=new Audio(soundUrl(f));prevAudio.volume=(S.config.soundVolume==null?80:S.config.soundVolume)/100;prevAudio.play().catch(()=>toast('Não foi possível tocar este arquivo'))}
+  catch(e){toast('Não foi possível tocar este arquivo')}
+}
+async function loadSounds(){const r=await api('/api/sounds');SND=r.ok?r.sounds:[];renderSounds()}
+function renderSounds(){
+  const used=new Set((S.config.buttons||[]).filter(b=>b.type==='sound').map(b=>b.file));
+  const v=S.config.soundVolume==null?80:S.config.soundVolume;$('#sndVol').value=v;$('#sndVolOut').textContent=v+'%';
+  $('#sndList').innerHTML=SND.map(f=>`<div class="rowgrid" data-f="${esc(f)}"><button class="act sec sm" data-snd="play" title="Ouvir (só no seu PC)">▶</button><span style="flex:2;align-self:center;min-width:140px;word-break:break-all">${esc(f)}${used.has(f)?' <span class="muted">· tem botão</span>':''}</span><input class="f" data-k="icon" value="speaker-high" style="flex:0 0 130px" title="Nome do ícone (phosphoricons.com)"><input class="f" data-k="label" value="${esc(f.replace(/\.[^.]+$/,'').replace(/[-_]+/g,' '))}" placeholder="Nome do botão"><button class="act sm" data-snd="btn">Criar botão</button><button class="act del sm" data-snd="del" title="Apagar o arquivo"><i class="ph ph-x"></i></button></div>`).join('')||'<span class="muted">Nenhum som ainda. Envie arquivos acima.</span>';
+}
+document.addEventListener('click',async e=>{
+  const b=e.target.closest('[data-snd]');if(!b)return;
+  const row=b.closest('[data-f]'),f=row.dataset.f,kind=b.dataset.snd;
+  if(kind==='play')return previewSound(f);
+  if(kind==='btn'){
+    const colors=['#dc2626','#d97706','#7c3aed','#0369a1','#16a34a','#be185d','#475569','#0f766e'];
+    const nb={id:'s'+Date.now(),label:row.querySelector('[data-k=label]').value.trim()||f,icon:row.querySelector('[data-k=icon]').value.trim()||'speaker-high',type:'sound',file:f,color:colors[Math.floor(Math.random()*colors.length)]};
+    await put({buttons:[...(S.config.buttons||[]),nb]});await loadState();renderSounds();return;
+  }
+  if(kind==='del'){
+    if(!b.dataset.arm){b.dataset.arm='1';b.textContent='Apagar?';setTimeout(()=>{delete b.dataset.arm;b.innerHTML='<i class="ph ph-x"></i>'},3000);return}
+    const r=await api('/api/sounds/'+encodeURIComponent(f),'DELETE');toast(r.ok?'Som apagado':'Erro: '+r.error);loadSounds();
+  }
+});
+async function uploadSounds(){
+  const files=[...$('#sndFile').files];if(!files.length)return toast('Escolha um ou mais arquivos');
+  let ok=0;
+  for(const f of files){
+    const r=await fetch('/api/sounds/upload?name='+encodeURIComponent(f.name),{method:'POST',headers:{'Content-Type':'application/octet-stream'},body:f}).then(x=>x.json()).catch(()=>({ok:false,error:'falha de rede'}));
+    if(r.ok)ok++;else toast('Erro em '+f.name+': '+r.error,4000);
+  }
+  $('#sndFile').value='';if(ok)toast(ok+' som(ns) enviado(s)');loadSounds();
+}
+async function saveSndVol(){await put({soundVolume:Number($('#sndVol').value)})}
+
+/* ---------- placar ---------- */
+function renderScore(){
+  const s=S.score||{wins:0,losses:0,winRate:null,streak:{},byGame:{},auto:true};
+  const set=(id,v)=>{const e=$(id);if(e&&e.textContent!==String(v)){e.textContent=v;const p=e.closest('.sc');if(p){p.classList.remove('bump');void p.offsetWidth;p.classList.add('bump')}}};
+  set('#scW',s.wins);set('#scL',s.losses);set('#scR',s.winRate==null?'—':s.winRate+'%');
+  set('#scS',s.streak&&s.streak.n?s.streak.n+(s.streak.type==='win'?' V':' D'):'—');
+  const A=$('#scAuto');if(A)A.checked=s.auto!==false;
+  const g=$('#scGames');
+  if(g)g.innerHTML=Object.entries(s.byGame||{}).map(([id,v])=>{const p=(S.config.profiles||[]).find(x=>x.id===id);return '<span class="pill" style="margin-right:6px"><i class="ph-fill ph-'+esc(p?profIcon(p):'game-controller')+'"></i>'+esc(p?p.label:id)+': '+v.wins+' V / '+v.losses+' D</span>'}).join('')||'<span class="muted">Nenhum resultado ainda nesta sessão.</span>';
+}
+(function(){
+  const b=$('#scReset');
+  if(b)b.onclick=async()=>{
+    if(!b.dataset.arm){b.dataset.arm='1';b.innerHTML='<i class="ph ph-warning"></i>Confirmar';setTimeout(()=>{delete b.dataset.arm;b.innerHTML='<i class="ph ph-broom"></i>Zerar'},3000);return}
+    delete b.dataset.arm;b.innerHTML='<i class="ph ph-broom"></i>Zerar';await act({type:'score',result:'reset'});
+  };
+  const a=$('#scAuto');
+  if(a)a.onchange=()=>api('/api/score','POST',{auto:a.checked}).then(r=>toast(r.ok?(a.checked?'Contagem automática ligada':'Contagem automática desligada'):'Erro: '+r.error));
+})();
+
+/* ---------- mixer de áudio ---------- */
+let MIX={inputs:[],all:[],hidden:[]},mixDrag={},mixTimers={};
+const isMic=n=>/mic|aux|micro|voz/i.test(n);
+const mixIcon=(n,muted)=>isMic(n)?(muted?'microphone-slash':'microphone'):(muted?'speaker-slash':'speaker-high');
+async function loadMixer(){
+  if(!S.obsConnected){renderMixer();return}
+  const r=await api('/api/mixer');
+  MIX=r.ok?r:{inputs:[],all:[],hidden:[],error:r.error};
+  renderMixer();
+}
+function renderMixer(){
+  const box=$('#mixerBox');if(!box)return;
+  if(!S.obsConnected){box.innerHTML='<p class="muted" style="margin:0">Conecte o OBS para controlar o volume das fontes de áudio.</p>';return}
+  if(MIX.error){box.innerHTML='<p class="muted" style="margin:0">'+esc(MIX.error)+'</p>';return}
+  box.innerHTML=MIX.inputs.map(i=>'<div class="mixrow '+(i.muted?'muted-in':'')+'" data-name="'+esc(i.name)+'"><button class="mixmute" title="Mutar ou desmutar"><i class="ph-fill ph-'+mixIcon(i.name,i.muted)+'"></i></button><div class="mixmid"><div class="mixtop"><span class="nm">'+esc(i.name)+'</span><span class="db">'+(i.db<=-99?'-∞':i.db)+' dB</span></div><div class="mixbar"><span class="track"></span><i class="meter"></i><input type="range" min="-60" max="6" step="1" value="'+Math.max(-60,Math.min(6,i.db))+'" aria-label="Volume de '+esc(i.name)+'"></div></div></div>').join('')||'<p class="muted" style="margin:0">Nenhuma fonte de áudio encontrada.</p>';
+  const list=$('#mixList');
+  if(list)list.innerHTML=(MIX.all||[]).map(n=>'<label class="chk"><input type="checkbox" data-mixshow="'+esc(n)+'" '+((MIX.hidden||[]).includes(n)?'':'checked')+'>'+esc(n)+'</label>').join('');
+}
+document.addEventListener('input',e=>{
+  const r=e.target.closest('.mixbar input[type=range]');if(!r)return;
+  const row=r.closest('.mixrow'),n=row.dataset.name;mixDrag[n]=Date.now();
+  row.querySelector('.db').textContent=r.value+' dB';
+  clearTimeout(mixTimers[n]);mixTimers[n]=setTimeout(()=>api('/api/mixer/volume','POST',{name:n,db:Number(r.value)}),60);
+});
+document.addEventListener('click',async e=>{const b=e.target.closest('.mixmute');if(!b)return;await api('/api/mixer/mute','POST',{name:b.closest('.mixrow').dataset.name})});
+document.addEventListener('change',e=>{
+  const c=e.target.closest('[data-mixshow]');if(!c)return;
+  const hidden=new Set(MIX.hidden||[]);if(c.checked)hidden.delete(c.dataset.mixshow);else hidden.add(c.dataset.mixshow);
+  api('/api/settings','PUT',{mixer:{hidden:[...hidden]}}).then(()=>loadMixer());
+});
+async function saveMixerProfile(){const r=await api('/api/mixer/save-profile','POST',{});toast(r.ok?'Volumes salvos no jogo '+r.profile:'Erro: '+r.error,4500)}
+
+/* ---------- ações do chat ---------- */
+const WT=[['redeem','Recompensa de pontos'],['donation','Doação (LivePix)'],['bits','Bits'],['follow','Follow'],['sub','Inscrição'],['resub','Renovação de inscrição'],['gift','Presente de subs'],['raid','Raid'],['command','Comando no chat'],['win','Vitória'],['loss','Derrota']];
+const AT=[['sound','Tocar som'],['effect','Texto grande na tela'],['alert','Cartão de aviso na tela'],['scene','Trocar de cena'],['say','Falar no chat'],['announce','Anúncio no chat'],['marker','Marcar clipe']];
+let TRG=[],SNDLIST=[];
+function actRowHTML(a){
+  a=a||{type:'sound'};
+  const p1=a.type==='sound'?a.file:a.type==='scene'?a.scene:a.text;
+  const p2=a.type==='scene'?a.seconds:a.type==='sound'?a.volume:a.type==='announce'?a.color:'';
+  return '<div class="rowgrid" data-arow><select class="f" data-k="atype" style="flex:1.3">'+AT.map(([v,t])=>'<option value="'+v+'" '+(a.type===v?'selected':'')+'>'+t+'</option>').join('')+'</select><input class="f" data-k="p1" value="'+esc(p1||'')+'" style="flex:3"><input class="f" data-k="p2" value="'+esc(p2==null?'':p2)+'" style="flex:.9"><button class="act del" data-delact title="Remover esta ação"><i class="ph ph-x"></i></button></div>';
+}
+function trgHTML(t){
+  const w=t.when||{};
+  return '<div class="pcard trg '+(t.enabled?'':'off')+'" data-id="'+esc(t.id)+'">'
+  +'<div class="rowgrid"><label class="chk" style="margin-right:6px"><input type="checkbox" data-k="enabled" '+(t.enabled?'checked':'')+'>Ativa</label><input class="f" data-k="label" value="'+esc(t.label||'')+'" placeholder="Nome da ação" style="flex:3"><button class="act sec sm" data-trg="test"><i class="ph ph-play"></i>Testar</button><button class="act del" data-del title="Apagar esta ação"><i class="ph ph-x"></i></button></div>'
+  +'<div class="rowgrid"><select class="f" data-k="wtype" style="flex:1.6">'+WT.map(([v,l])=>'<option value="'+v+'" '+(w.type===v?'selected':'')+'>Quando: '+l+'</option>').join('')+'</select>'
+  +'<input class="f" data-k="match" value="'+esc(w.match||'')+'" style="flex:2"><label class="muted lbl" style="display:flex;align-items:center;gap:6px">mín.<input class="f" data-k="min" type="number" step="any" value="'+esc(w.min==null?'':w.min)+'" style="width:90px;flex:none"></label><label class="muted lbl" style="display:flex;align-items:center;gap:6px">máx.<input class="f" data-k="max" type="number" step="any" value="'+esc(w.max==null?'':w.max)+'" style="width:90px;flex:none"></label>'
+  +'<select class="f" data-k="who"><option value="all" '+((!w.who||w.who==='all')?'selected':'')+'>Todos</option><option value="subs" '+(w.who==='subs'?'selected':'')+'>Subs, VIPs e mods</option><option value="vips" '+(w.who==='vips'?'selected':'')+'>VIPs e mods</option><option value="mods" '+(w.who==='mods'?'selected':'')+'>Só mods</option></select>'
+  +'<label class="muted" style="display:flex;align-items:center;gap:6px" title="Segundos de espera para poder disparar de novo">recuo (s)<input class="f" data-k="cooldown" type="number" value="'+esc(t.cooldown==null?0:t.cooldown)+'" style="width:80px;flex:none"></label></div>'
+  +'<div class="muted">Então:</div><div class="acts">'+(t.actions||[]).map(actRowHTML).join('')+'</div>'
+  +'<button class="act sec sm" data-trg="addact"><i class="ph ph-plus"></i>Ação</button></div>';
+}
+function syncTrg(card){
+  const wt=card.querySelector('[data-k=wtype]').value;
+  const show=(k,on)=>{const e=card.querySelector('[data-k='+k+']');(e.closest('label.lbl')||e).classList.toggle('hide',!on)};
+  show('match',wt==='redeem'||wt==='command');show('min',['donation','bits','gift','raid'].includes(wt));show('max',wt==='donation');show('who',wt==='command');
+  card.querySelector('[data-k=match]').placeholder=wt==='command'?'!comando (ex.: !sirene)':'Nome da recompensa (igual ao da Twitch)';
+  card.querySelector('[data-k=min]').placeholder=wt==='donation'?'mínimo R$':wt==='bits'?'mínimo de bits':wt==='gift'?'mínimo de subs':'mínimo de viewers';
+  card.querySelectorAll('[data-arow]').forEach(r=>{
+    const t=r.querySelector('[data-k=atype]').value,p1=r.querySelector('[data-k=p1]'),p2=r.querySelector('[data-k=p2]');
+    p1.placeholder={sound:'arquivo de som (ex.: sirene-policia.wav)',effect:'texto grande, pode usar {user} e {amount}',alert:'texto do cartão, pode usar {user} e {reward}',scene:'nome da cena no OBS',say:'mensagem no chat',announce:'texto do anúncio',marker:'nome do clipe (opcional)'}[t]||'';
+    p2.placeholder={sound:'volume %',scene:'volta em (s)',announce:'cor (primary, blue, green, orange, purple)'}[t]||'';
+    p2.classList.toggle('hide',!['sound','scene','announce'].includes(t));
+    if(t==='sound')p1.setAttribute('list','dlSounds');else p1.removeAttribute('list');
+  });
+  card.classList.toggle('off',!card.querySelector('[data-k=enabled]').checked);
+}
+function renderTriggers(){
+  const el=$('#trgList');if(!el)return;
+  TRG=S.config.triggers||[];
+  el.innerHTML=TRG.map(trgHTML).join('')||'<p class="muted">Nenhuma ação ainda.</p>';
+  el.querySelectorAll('.trg').forEach(syncTrg);
+  const dl=$('#dlSounds');if(dl)dl.innerHTML=SNDLIST.map(f=>'<option value="'+esc(f)+'">').join('');
+}
+function readTriggers(){
+  return [...document.querySelectorAll('#trgList .trg')].map((c,i)=>{
+    const g=k=>c.querySelector('[data-k='+k+']');const wt=g('wtype').value;
+    const when={type:wt};
+    if(wt==='redeem'||wt==='command')when.match=g('match').value.trim();
+    if(['donation','bits','gift','raid'].includes(wt)){when.min=Number(g('min').value)||0;if(wt==='donation'&&g('max').value!=='')when.max=Number(g('max').value)}
+    if(wt==='command')when.who=g('who').value;
+    const actions=[...c.querySelectorAll('[data-arow]')].map(r=>{
+      const t=r.querySelector('[data-k=atype]').value,p1=r.querySelector('[data-k=p1]').value.trim(),p2=r.querySelector('[data-k=p2]').value.trim();
+      if(t==='sound')return{type:t,file:p1,...(p2!==''?{volume:Number(p2)}:{})};
+      if(t==='scene')return{type:t,scene:p1,seconds:Number(p2)||0};
+      if(t==='announce')return{type:t,text:p1,...(p2?{color:p2}:{})};
+      return{type:t,text:p1};
+    });
+    return{id:c.dataset.id||'t'+Date.now()+i,enabled:g('enabled').checked,label:g('label').value.trim(),when,cooldown:Number(g('cooldown').value)||0,actions};
+  });
+}
+async function loadTriggers(){const r=await api('/api/sounds');SNDLIST=r.ok?r.sounds:[];renderTriggers()}
+async function saveTriggers(){return put({triggers:readTriggers()})}
+function addTrigger(match){
+  const id='t'+Date.now();
+  $('#trgList').insertAdjacentHTML('beforeend',trgHTML({id,enabled:true,label:match?('Recompensa: '+match):'Nova ação',when:{type:match?'redeem':'donation',match:match||'',min:10},cooldown:0,actions:[{type:'sound'}]}));
+  const c=$('#trgList').lastElementChild;syncTrg(c);c.scrollIntoView({block:'center'});
+}
+document.addEventListener('change',e=>{const c=e.target.closest('.trg');if(c)syncTrg(c)});
+document.addEventListener('click',async e=>{
+  const d=e.target.closest('[data-delact]');if(d){const c=d.closest('.trg');d.closest('[data-arow]').remove();if(c)syncTrg(c);return}
+  const b=e.target.closest('[data-trg]');if(!b)return;
+  const c=b.closest('.trg');
+  if(b.dataset.trg==='addact'){c.querySelector('.acts').insertAdjacentHTML('beforeend',actRowHTML({type:'sound'}));syncTrg(c)}
+  if(b.dataset.trg==='test'){await saveTriggers();const r=await api('/api/triggers/'+encodeURIComponent(c.dataset.id)+'/test','POST');toast(r.ok?'Teste enviado (no teste, mensagens no chat não são enviadas)':'Erro: '+r.error,4500)}
+});
+async function loadRewards(){
+  const r=await api('/api/twitch/rewards'),el=$('#rewList');
+  if(!r.ok){el.innerHTML='<p class="muted" style="color:var(--warn)">'+esc(r.error)+'</p>';return}
+  el.innerHTML=(r.rewards||[]).map(x=>'<div class="feeditem"><i class="ph-fill ph-star"></i><span style="flex:1">'+esc(x.title)+' <span class="muted">· '+x.cost+' pontos'+(x.enabled?'':' · desativada')+'</span></span><button class="act sec sm" onclick="addTrigger(this.dataset.t)" data-t="'+esc(x.title)+'">Usar numa ação</button></div>').join('')||'<p class="muted">Nenhuma recompensa criada ainda.</p>';
+}
+async function createReward(){
+  const r=await api('/api/twitch/rewards','POST',{title:$('#rwTitle').value,cost:$('#rwCost').value,prompt:$('#rwPrompt').value});
+  toast(r.ok?'Recompensa criada na Twitch: '+r.reward.title:'Erro: '+r.error,5000);
+  if(r.ok){$('#rwTitle').value='';loadRewards()}
+}
+
+/* ---------- cortes: automático, em lote e clipe da Twitch ---------- */
+function renderAutoClips(){
+  const a=S.config.autoClips||{};
+  const set=(id,v)=>{const e=$(id);if(e)e.value=v},chk=(id,v)=>{const e=$(id);if(e)e.checked=v};
+  chk('#acOn',a.enabled!==false);set('#acCs',a.cs2Kills==null?3:a.cs2Kills);set('#acLol',a.lolKills==null?3:a.lolKills);set('#acDon',a.donationMin==null?20:a.donationMin);set('#acChat',a.chatPerMin==null?0:a.chatPerMin);chk('#acRaid',a.raid!==false);chk('#acTw',!!a.twitchClip);
+}
+async function saveAutoClips(){await put({autoClips:{enabled:$('#acOn').checked,cs2Kills:Number($('#acCs').value)||0,lolKills:Number($('#acLol').value)||0,donationMin:Number($('#acDon').value)||0,chatPerMin:Number($('#acChat').value)||0,raid:$('#acRaid').checked,twitchClip:$('#acTw').checked}})}
+async function cutAll(fmts){
+  const r=await api('/api/clips/cut-all','POST',{formats:fmts,onlyNew:true,before:Number($('#cutBefore').value),after:Number($('#cutAfter').value)});
+  toast(r.ok?(r.queued?r.queued+' corte(s) na fila'+(r.skipped?' ('+r.skipped+' marcação(ões) sem arquivo)':''):'Nada novo para cortar'+(r.skipped?' ('+r.skipped+' sem arquivo)':'')):'Erro: '+r.error,5000);
+}
+function renderCut(job){
+  const el=$('#cutProg');if(!el)return;
+  if(!job||(!job.running&&!job.total)){el.innerHTML='';return}
+  const p=job.total?Math.round(job.done/job.total*100):0;
+  el.innerHTML='<div class="muted">'+(job.running?'Cortando '+esc(job.current||'')+' · '+job.done+'/'+job.total:'Fila concluída: '+job.done+'/'+job.total+(job.errors.length?' · '+job.errors.length+' erro(s)':''))+'</div><div class="prog"><i style="width:'+p+'%"></i></div>'+(job.errors.length?'<div class="steps">'+job.errors.map(x=>'<div class="no">'+esc(x)+'</div>').join('')+'</div>':'');
+}
+async function twitchClip(id){toast('Criando clipe na Twitch...',3000);const r=await api('/api/clips/twitch','POST',{id});toast(r.ok?'Clipe criado: '+r.clip.url:'Erro: '+r.error,6000);if(r.ok&&typeof loadMarkers==='function')loadMarkers()}
+document.addEventListener('click',async e=>{
+  const t=e.target.closest('[data-twclip]');if(t){twitchClip(t.dataset.twclip);return}
+  const d=e.target.closest('[data-delmk]');
+  if(d){
+    if(!d.dataset.arm){d.dataset.arm='1';d.innerHTML='Apagar?';setTimeout(()=>{delete d.dataset.arm;d.innerHTML='<i class="ph ph-trash"></i>'},3000);return}
+    await api('/api/markers/'+d.dataset.delmk,'DELETE');loadMarkers();
+  }
+});
+
+renderCheck();initSolo();loadState();connectWs();
+</script>
+</body>
+</html>

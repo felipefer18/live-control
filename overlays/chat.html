@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Chat overlay</title>
+<style>
+  html,body{margin:0;background:transparent;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif;height:100vh}
+  #list{position:fixed;left:0;right:0;bottom:0;display:flex;flex-direction:column;justify-content:flex-end;padding:10px;gap:6px}
+  .m{color:#fff;font-size:22px;line-height:1.25;padding:6px 12px;border-radius:10px;background:#0b0c11b8;width:fit-content;max-width:100%;word-break:break-word;text-shadow:0 1px 2px #000;animation:in .25s ease-out}
+  .m b{margin-right:8px}
+  @keyframes in{from{transform:translateX(-20px);opacity:0}to{transform:none;opacity:1}}
+</style>
+</head>
+<body>
+<div id="list"></div>
+<script>
+const list=document.getElementById('list');
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+function connect(){
+  const ws=new WebSocket('ws://'+location.host+'/ws');
+  ws.onmessage=e=>{const m=JSON.parse(e.data);
+    if(m.type!=='chat')return;
+    const d=document.createElement('div');d.className='m';
+    d.innerHTML=`<b style="color:${esc(m.color)}">${esc(m.user)}</b>${esc(m.text)}`;
+    list.appendChild(d);
+    setTimeout(()=>d.remove(),45000);
+    while(list.children.length>12)list.firstChild.remove();
+  };
+  ws.onclose=()=>setTimeout(connect,2000);
+}
+connect();
+</script>
+</body>
+</html>

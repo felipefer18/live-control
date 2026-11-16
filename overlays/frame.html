@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Moldura</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap">
+<style>
+  :root{color-scheme:dark;--ac:#f59e0b;--ac2:#ef4444;--glow:0 0 22px #f59e0bb3;--inner:#f59e0b73;--bar1:#3a2a0e;--bar2:#2e1214;--barsh:#f59e0b8c}
+  html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:transparent;font-family:Rajdhani,'Segoe UI',system-ui,sans-serif}
+  #root{position:absolute;left:0;top:0;width:1920px;height:1080px}
+  #root>*{position:absolute;box-sizing:border-box}
+  .ol{box-shadow:inset 0 0 0 5px var(--ac),var(--glow),inset 0 0 28px var(--inner);pointer-events:none}
+  .lbl{font:700 24px Rajdhani,sans-serif;letter-spacing:.12em;text-transform:uppercase;color:var(--ac);font-style:italic}
+  .chat{padding:22px 24px;background:#07060f;border:4px solid var(--ac);box-shadow:var(--glow),inset 0 0 26px var(--inner);overflow:hidden}
+  #msgs{display:flex;flex-direction:column;justify-content:flex-end;gap:14px;height:calc(100% - 42px);overflow:hidden}
+  .m{font:600 30px/1.2 Rajdhani,sans-serif;color:#fff;word-break:break-word}.m b{margin-right:8px}
+  .bar{background:linear-gradient(95deg,var(--bar1),#07060f 55%,var(--bar2));display:grid;grid-template-columns:660px 1fr 430px;gap:44px;align-items:center;padding:0 50px;border-top:4px solid var(--ac);box-shadow:0 -6px 26px var(--barsh)}
+  .qrb{display:flex;align-items:center;gap:26px}
+  .qr{background:#fff;padding:10px;flex:none;width:176px;height:176px;border-radius:6px;box-shadow:0 0 0 4px var(--ac),var(--glow)}
+  .qr svg{display:block;width:100%;height:100%}
+  .qrb.pulse .qr{animation:pulse 1s ease-in-out 6}
+  @keyframes pulse{50%{transform:scale(1.1)}}
+  .url{font:700 46px Rajdhani;font-style:italic;text-transform:uppercase;color:#fff;margin:2px 0;white-space:nowrap}
+  .hint{font:600 24px Rajdhani;color:var(--ac2);letter-spacing:.05em}
+  .goal{margin-bottom:20px}.goal .t{display:flex;justify-content:space-between;font:700 25px Rajdhani;text-transform:uppercase;color:#fff;margin-bottom:6px}
+  .goal .b{height:20px;background:#ffffff14;transform:skewX(-18deg);border:2px solid #ffffff30;overflow:hidden}
+  .goal .b i{display:block;height:100%;background:linear-gradient(90deg,var(--ac),var(--ac2));box-shadow:var(--glow);transition:width .8s}
+  .scorerow{display:flex;align-items:baseline;gap:18px;margin-bottom:12px;font:700 30px Rajdhani;text-transform:uppercase;color:#fff;white-space:nowrap}
+  .scorerow .lb{font-size:22px;letter-spacing:.14em;font-style:italic;color:var(--ac)}
+  .scorerow .w{color:#22c55e;text-shadow:0 0 14px #22c55e88}.scorerow .l{color:#ef4444;text-shadow:0 0 14px #ef444488}
+  .scorerow .sk{font-size:20px;color:var(--ac2);letter-spacing:.06em}
+  .scorerow.chip{position:absolute;margin:0;background:#07060f;border:3px solid var(--ac);box-shadow:var(--glow);padding:8px 14px;justify-content:space-between;box-sizing:border-box}
+  .nm{font:700 48px Rajdhani;font-style:italic;text-transform:uppercase;color:#fff;text-shadow:0 0 18px var(--ac);line-height:1.05}
+  .tg{font:600 24px Rajdhani;color:var(--ac2);letter-spacing:.06em;text-transform:uppercase}
+  .soc{font:600 26px Rajdhani;color:#e6e0ff;margin-top:6px;line-height:1.5}.soc em{font-style:normal;color:var(--ac);min-width:150px;display:inline-block;text-transform:uppercase}
+  .live{background:#ef233c;color:#fff;font:700 28px Rajdhani;letter-spacing:.14em;padding:4px 22px 4px 16px;clip-path:polygon(0 0,100% 0,calc(100% - 14px) 100%,0 100%);box-shadow:0 0 22px #ef233c;display:none}
+  .live.on{display:block}
+  .strip{background:linear-gradient(90deg,var(--ac),var(--ac2));color:#07060f;font:700 26px Rajdhani;text-transform:uppercase;padding:0 14px;display:flex;justify-content:space-between;align-items:center;box-shadow:var(--glow)}
+  .qrcard{background:#07060f;border:4px solid var(--ac);box-shadow:var(--glow);padding:16px;display:flex;gap:16px;align-items:center;color:#fff;font:700 26px Rajdhani;text-transform:uppercase;opacity:0;transform:translateX(-30px);transition:opacity .5s,transform .5s}
+  .qrcard.on{opacity:1;transform:none}
+  .qrcard{gap:14px;padding:14px}
+  .qrcard .qr{width:100px;height:100px;padding:6px;box-shadow:0 0 0 3px var(--ac)}
+  .qrcard small{font-size:19px;letter-spacing:0}
+  .qrcard small{display:block;font-size:20px;color:var(--ac2);letter-spacing:.04em}
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script>
+var P=new URLSearchParams(location.search);
+var GAME=P.get('game')||window.GAME||'cs2';
+var PHASE=P.get('phase')||window.PHASE||'lobby'; // lobby: moldura completa · game: só webcam e QR
+var PREVIEW=P.has('preview')||!!window.PREVIEW;
+var L=null,goals=[],qrSvg='',streaming=false,qrTimer=null;
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+var root=document.getElementById('root');
+
+function rgb(h){h=h.replace('#','');if(h.length===3)h=h.split('').map(function(c){return c+c}).join('');return[parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)]}
+function rgba(h,a){var c=rgb(h);return'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'}
+function mix(h,base,t){var a=rgb(h),b=rgb(base);return'#'+[0,1,2].map(function(i){return Math.round(a[i]*t+b[i]*(1-t)).toString(16).padStart(2,'0')}).join('')}
+function theme(ac,ac2){
+  var s=document.documentElement.style;
+  s.setProperty('--ac',ac);s.setProperty('--ac2',ac2);
+  s.setProperty('--glow','0 0 22px '+rgba(ac,.7));s.setProperty('--inner',rgba(ac,.4));
+  s.setProperty('--bar1',mix(ac,'#07060f',.32));s.setProperty('--bar2',mix(ac2,'#07060f',.28));s.setProperty('--barsh',rgba(ac,.55));
+}
+var pos=function(r,extra){return'left:'+r.x+'px;top:'+r.y+'px;width:'+r.w+'px;height:'+r.h+'px;'+(extra||'')};
+var fmtUrl=function(u){return String(u||'').replace(/^https?:\/\//i,'').replace(/\/$/,'')};
+
+function goalsHTML(){
+  return goals.slice(0,2).map(function(g){
+    var p=Math.min(100,g.target?g.current/g.target*100:0);
+    var f=function(v){return g.unit==='R$'?'R$ '+Number(v).toFixed(2).replace('.',','):String(Math.round(v*100)/100)};
+    return'<div class="goal"><div class="t"><span>'+esc(g.label)+'</span><span>'+f(g.current)+' / '+f(g.target)+'</span></div><div class="b"><i style="width:'+p+'%"></i></div></div>'}).join('');
+}
+function renderGoals(){var el=document.getElementById('goals');if(el)el.innerHTML=goalsHTML()}
+var SCORE=null;
+function scoreHTML(){
+  var s=SCORE||{wins:0,losses:0,streak:{}},st=s.streak||{};
+  var tx=st.n>1?(st.n+(st.type==='win'?' V':' D')+' seguidas'):'';
+  return '<span class="lb">Placar</span><span class="w">'+s.wins+' V</span><span class="l">'+s.losses+' D</span>'+(tx?'<span class="sk">'+tx+'</span>':'');
+}
+function renderScore(){var el=document.getElementById('score');if(el)el.innerHTML=scoreHTML()}
+
+function render(){
+  var B=L.brand,R=L.rects,side=L.mode==='side';
+  theme(L.accent,L.accent2);
+  var h='';
+  L.panels.forEach(function(p){h+='<div style="'+pos(p,'background:#07060f')+'"></div>'});
+  if(side){
+    h+='<div class="chat" style="'+pos(R.chat)+'"><div class="lbl" style="margin-bottom:14px">Chat ao vivo</div><div id="msgs"></div></div>';
+    h+='<div class="bar" style="'+pos(R.bar)+'">'
+      +'<div class="qrb" id="qrb"><div class="qr">'+qrSvg+'</div><div><div class="lbl">Apoie a live</div><div class="url">'+esc(fmtUrl(B.livepixUrl)||'configure o link')+'</div><div class="hint">ou digite !pix no chat</div></div></div>'
+      +'<div>'+(B.showScore!=='off'?'<div id="score" class="scorerow">'+scoreHTML()+'</div>':'')+'<div id="goals">'+goalsHTML()+'</div></div>'
+      +'<div><div class="nm">'+esc(B.name)+'</div>'+(B.tagline?'<div class="tg">'+esc(B.tagline)+'</div>':'')+'<div class="soc">'+B.socials.slice(0,3).map(function(s){return'<div><em>'+esc(s.label)+'</em>'+esc(s.text)+'</div>'}).join('')+'</div></div></div>';
+  }
+  L.outlines.forEach(function(o){h+='<div class="ol" style="'+pos(o)+'"></div>'});
+  if(side)h+='<div class="live" id="live" style="left:'+(R.cam.x+12)+'px;top:'+(R.cam.y+R.cam.h-52)+'px">AO VIVO</div>';
+  if(!side){
+    // durante a partida: só a webcam (borda) e o QR, para não atrapalhar a visão do jogo
+    if(B.showScore==='always')h+='<div id="score" class="scorerow chip" style="left:'+R.cam.x+'px;top:'+(R.cam.y+R.cam.h+160)+'px;width:'+R.cam.w+'px">'+scoreHTML()+'</div>';
+    h+='<div class="qrcard" id="qrcard" style="left:'+R.cam.x+'px;top:'+(R.cam.y+R.cam.h+12)+'px;width:'+R.cam.w+'px"><div class="qr">'+qrSvg+'</div><div>Apoie a live<small>'+esc(fmtUrl(B.livepixUrl))+'</small></div></div>';
+  }
+  root.innerHTML=h;
+  var lv=document.getElementById('live');if(lv)lv.classList.toggle('on',streaming||PREVIEW);
+  if(PREVIEW)sampleChat();
+  scheduleQr();
+}
+
+function showQr(){
+  var c=document.getElementById('qrcard'),b=document.getElementById('qrb');
+  var fixed=PREVIEW||(L&&L.brand.qrAlways);
+  if(c){c.classList.add('on');if(!fixed)setTimeout(function(){c.classList.remove('on')},12000)}
+  if(b){b.classList.remove('pulse');void b.offsetWidth;b.classList.add('pulse')}
+}
+function scheduleQr(){
+  clearInterval(qrTimer);if(!L||L.mode==='side')return;
+  if(PREVIEW||L.brand.qrAlways){setTimeout(showQr,300);return}
+  setTimeout(showQr,15000);
+  qrTimer=setInterval(showQr,Math.max(60,L.brand.qrEverySec||300)*1000);
+}
+
+function addChat(m){
+  var box=document.getElementById('msgs');if(!box)return;
+  var d=document.createElement('div');d.className='m';
+  d.innerHTML='<b style="color:'+esc(m.color||'#a78bfa')+'">'+esc(m.user)+'</b>'+esc(m.text);
+  box.appendChild(d);while(box.children.length>9)box.firstChild.remove();
+}
+function sampleChat(){[['LucasAWP','#38bdf8','que clutch absurdo'],['marina_gg','#f472b6','GG demais'],['Zeca','#a3e635','ace!!!'],['nina','#c084fc','primeira vez aqui, curti']].forEach(function(m){addChat({user:m[0],color:m[1],text:m[2]})})}
+
+async function load(){
+  var j=function(u){return fetch(u).then(function(r){return r.json()})};
+  var r=await j('/api/layout/'+encodeURIComponent(GAME)+'?phase='+encodeURIComponent(PHASE));L=r.layout;
+  qrSvg=await fetch('/api/qr.svg').then(function(r){return r.text()});
+  goals=(await j('/api/goals')).goals||[];
+  try{SCORE=(await j('/api/score')).score}catch(e){SCORE=null}
+  render();
+}
+function connect(){
+  var ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');
+  ws.onmessage=function(e){var m=JSON.parse(e.data);
+    if(m.type==='chat')addChat(m);
+    else if(m.type==='session'){goals=m.goals||[];renderGoals()}
+    else if(m.type==='score'){SCORE=m.score;renderScore()}
+    else if(m.type==='health'){streaming=!!m.health.streaming;var lv=document.getElementById('live');if(lv)lv.classList.toggle('on',streaming||PREVIEW)}
+    else if(m.type==='showQr')showQr();
+    else if(m.type==='config')load();
+  };
+  ws.onclose=function(){setTimeout(connect,2000)};
+}
+load().catch(function(){setTimeout(load,3000)});
+connect();
+</script>
+</body>
+</html>

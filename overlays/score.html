@@ -1,0 +1,50 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Placar</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap">
+<style>
+  :root{--ac:#a855f7;--ac2:#ec4899;--glow:0 0 22px #a855f7b3;--inner:#a855f766;color-scheme:dark}
+  html,body{margin:0;background:transparent;overflow:hidden;font-family:Rajdhani,'Segoe UI',system-ui,sans-serif;color:#fff}
+  #card{display:inline-flex;align-items:stretch;gap:0;background:#07060f;border:4px solid var(--ac);box-shadow:var(--glow),inset 0 0 26px var(--inner);margin:10px}
+  .lbl{display:flex;align-items:center;padding:0 18px;font:700 22px Rajdhani;letter-spacing:.16em;text-transform:uppercase;font-style:italic;color:var(--ac);border-right:2px solid #ffffff22}
+  .side{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 26px;min-width:110px}
+  .side b{font:700 64px/1 Rajdhani;font-variant-numeric:tabular-nums}
+  .side span{font:600 18px Rajdhani;letter-spacing:.14em;text-transform:uppercase;color:#cbd5e1}
+  .w b{color:#22c55e;text-shadow:0 0 18px #22c55e99}.l b{color:#ef4444;text-shadow:0 0 18px #ef444499}
+  .mid{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:6px 20px;border-left:2px solid #ffffff22;min-width:140px}
+  .mid b{font:700 30px/1 Rajdhani;font-style:italic;text-transform:uppercase}.mid span{font:600 16px Rajdhani;letter-spacing:.1em;color:#cbd5e1;text-transform:uppercase}
+  .bump{animation:bump .6s}
+  @keyframes bump{30%{transform:scale(1.35)}}
+  @media (prefers-reduced-motion:reduce){.bump{animation:none}}
+</style>
+</head>
+<body>
+<div id="card"></div>
+<script>
+var P=new URLSearchParams(location.search);
+var GAME=P.get('game')||'';           // ?game=cs2 mostra só aquele jogo; sem isso mostra o total da sessão
+var S=null,last='';
+function rgb(h){h=h.replace('#','');return[parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)]}
+function rgba(h,a){var c=rgb(h);return'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'}
+function theme(ac,ac2){var s=document.documentElement.style;s.setProperty('--ac',ac);s.setProperty('--ac2',ac2);s.setProperty('--glow','0 0 22px '+rgba(ac,.7));s.setProperty('--inner',rgba(ac,.4))}
+function pick(){if(!S)return{w:0,l:0};if(GAME&&S.byGame&&S.byGame[GAME])return{w:S.byGame[GAME].wins,l:S.byGame[GAME].losses};if(GAME)return{w:0,l:0};return{w:S.wins,l:S.losses}}
+function render(){
+  var p=pick(),st=(S&&S.streak)||{},rate=(p.w+p.l)?Math.round(p.w/(p.w+p.l)*100)+'%':'—';
+  var streak=st&&st.n>1?st.n+(st.type==='win'?' V':' D')+' seguidas':'sequência';
+  var key=p.w+'-'+p.l;
+  document.getElementById('card').innerHTML='<div class="lbl">Placar</div><div class="side w"><b id="bw">'+p.w+'</b><span>Vitórias</span></div><div class="side l"><b id="bl">'+p.l+'</b><span>Derrotas</span></div><div class="mid"><b>'+rate+'</b><span>'+streak+'</span></div>';
+  if(last&&key!==last){var el=document.getElementById(p.w>Number(last.split('-')[0])?'bw':'bl');if(el)el.classList.add('bump')}
+  last=key;
+}
+fetch('/api/score').then(function(r){return r.json()}).then(function(r){S=r.score;render()});
+fetch('/api/state').then(function(r){return r.json()}).then(function(r){if(r.theme)theme(r.theme.accent,r.theme.accent2)});
+(function connect(){
+  var ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');
+  ws.onmessage=function(e){var m=JSON.parse(e.data);if(m.type==='score'){S=m.score;render()}if(m.type==='theme')theme(m.theme.accent,m.theme.accent2)};
+  ws.onclose=function(){setTimeout(connect,2000)};
+})();
+</script>
+</body>
+</html>

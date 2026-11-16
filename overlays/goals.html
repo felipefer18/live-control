@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Metas</title>
+<style>
+  :root{--a1:#8b5cf6;--a2:#db2777}
+  html,body{margin:0;background:transparent;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif}
+  #wrap{display:flex;flex-direction:column;gap:12px;padding:10px;width:480px}
+  .goal{color:#fff;background:#0b0c11c8;border-radius:14px;padding:10px 14px;text-shadow:0 1px 2px #000}
+  .top{display:flex;justify-content:space-between;font-weight:700;font-size:20px;margin-bottom:6px}
+  .top span:last-child{font-variant-numeric:tabular-nums}
+  .bar{height:16px;border-radius:99px;background:#ffffff22;overflow:hidden}
+  .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--a1),var(--a2));transition:width .8s cubic-bezier(.2,.8,.2,1)}
+  .done .top span:first-child::after{content:' ✅'}
+</style>
+</head>
+<body>
+<div id="wrap"></div>
+<script>
+const wrap=document.getElementById('wrap');
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const fmt=(g,v)=>g.unit==='R$'?'R$ '+Number(v).toFixed(2).replace('.',','):String(Math.round(v*100)/100);
+function render(goals){
+  const only=new URLSearchParams(location.search).get('id');
+  wrap.innerHTML=(goals||[]).filter(g=>!only||g.id===only).map(g=>{
+    const pct=Math.min(100,g.target?g.current/g.target*100:0);
+    return `<div class="goal ${pct>=100?'done':''}"><div class="top"><span>${esc(g.label)}</span><span>${fmt(g,g.current)} / ${fmt(g,g.target)}</span></div><div class="bar"><div class="fill" style="width:${pct}%"></div></div></div>`}).join('');
+}
+fetch('/api/goals').then(r=>r.json()).then(r=>render(r.goals));
+function connect(){
+  const ws=new WebSocket('ws://'+location.host+'/ws');
+  ws.onmessage=e=>{const m=JSON.parse(e.data);
+    if(m.type==='session')render(m.goals);
+    if(m.type==='theme'){document.documentElement.style.setProperty('--a1',m.theme.accent);document.documentElement.style.setProperty('--a2',m.theme.accent2)}};
+  ws.onclose=()=>setTimeout(connect,2000);
+}
+connect();
+</script>
+</body>
+</html>

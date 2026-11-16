@@ -1,0 +1,529 @@
+{
+  "port": 3000,
+  "obs": {
+    "host": "127.0.0.1",
+    "port": 4455,
+    "password": ""
+  },
+  "twitch": {
+    "channel": "seucanal",
+    "clientId": ""
+  },
+  "livepix": {
+    "clientId": "",
+    "clientSecret": "",
+    "pollSeconds": 6,
+    "thanksInChat": true
+  },
+  "brand": {
+    "name": "",
+    "tagline": "CS2 • LoL • Ron Run",
+    "livepixUrl": "livepix.gg/SEUUSUARIO",
+    "qrAlways": true,
+    "qrEverySec": 300,
+    "socials": [
+      {
+        "label": "Discord",
+        "text": "discord.gg/SEUCONVITE"
+      },
+      {
+        "label": "Instagram",
+        "text": "@seuperfil"
+      }
+    ],
+    "showScore": "lobby"
+  },
+  "camera": {
+    "source": "LC Webcam",
+    "device": ""
+  },
+  "scenes": {
+    "starting": "Começando",
+    "ending": "Encerrando"
+  },
+  "announcements": [
+    {
+      "id": "a1",
+      "label": "Seguir",
+      "emoji": "💜",
+      "text": "Curtiu a live? Segue o canal e ativa o sininho!",
+      "color": "purple",
+      "icon": "heart"
+    },
+    {
+      "id": "a2",
+      "label": "Apoie",
+      "emoji": "💸",
+      "text": "Quer apoiar a live? Doe pela LivePix: livepix.gg/SEUUSUARIO",
+      "color": "green",
+      "icon": "currency-circle-dollar"
+    },
+    {
+      "id": "a3",
+      "label": "Discord",
+      "emoji": "💬",
+      "text": "Entra no nosso Discord: discord.gg/SEUCONVITE",
+      "color": "blue",
+      "icon": "discord-logo"
+    },
+    {
+      "id": "a4",
+      "label": "Regras",
+      "emoji": "📜",
+      "text": "Respeito acima de tudo: sem spam e sem ofensas. Bora jogar!",
+      "color": "orange",
+      "icon": "scroll"
+    }
+  ],
+  "ads": {
+    "warnChat": true
+  },
+  "audio": {
+    "mic": "Mic/Aux"
+  },
+  "brb": {
+    "scene": "Já volto",
+    "muteMic": true,
+    "sound": ""
+  },
+  "clips": {
+    "before": 25,
+    "after": 10,
+    "ffmpegPath": ""
+  },
+  "donationRules": [
+    {
+      "min": 50,
+      "effect": "big",
+      "sound": ""
+    },
+    {
+      "min": 20,
+      "effect": "medium",
+      "sound": ""
+    },
+    {
+      "min": 1,
+      "effect": "small",
+      "sound": ""
+    }
+  ],
+  "goals": [
+    {
+      "id": "g1",
+      "label": "Meta de doações",
+      "type": "donation",
+      "target": 100,
+      "current": 0,
+      "unit": "R$"
+    },
+    {
+      "id": "g2",
+      "label": "Novos seguidores",
+      "type": "follow",
+      "target": 20,
+      "current": 0,
+      "unit": ""
+    }
+  ],
+  "commands": [
+    {
+      "trigger": "!pix",
+      "response": "Quer apoiar a live? Doe pela LivePix: livepix.gg/SEUUSUARIO 💜",
+      "cooldown": 60
+    },
+    {
+      "trigger": "!discord",
+      "response": "Entra no nosso Discord: discord.gg/SEUCONVITE",
+      "cooldown": 60
+    },
+    {
+      "trigger": "!setup",
+      "response": "Meu setup: (preencha com suas peças)",
+      "cooldown": 60
+    }
+  ],
+  "timers": [
+    {
+      "message": "Curtiu a live? Segue o canal e ativa o sininho 🔔",
+      "everyMin": 15,
+      "minLines": 5
+    },
+    {
+      "message": "Comandos: !pix !discord !setup",
+      "everyMin": 25,
+      "minLines": 5
+    }
+  ],
+  "profiles": [
+    {
+      "id": "cs2",
+      "label": "CS2",
+      "emoji": "🔫",
+      "scene": "CS2",
+      "twitchTitle": "CS2 | Subindo de rank 🔫 !pix !discord",
+      "twitchCategory": "Counter-Strike",
+      "accent": "#f59e0b",
+      "accent2": "#ef4444",
+      "detect": {
+        "type": "cs2"
+      },
+      "volumes": {},
+      "sources": []
+    },
+    {
+      "id": "lol",
+      "label": "LoL",
+      "emoji": "⚔️",
+      "scene": "LoL",
+      "twitchTitle": "LoL | Solo queue ⚔️ !pix !discord",
+      "twitchCategory": "League of Legends",
+      "accent": "#38bdf8",
+      "accent2": "#8b5cf6",
+      "detect": {
+        "type": "lol"
+      },
+      "volumes": {},
+      "sources": []
+    },
+    {
+      "id": "ronrun",
+      "label": "Ron Run",
+      "emoji": "🏃",
+      "scene": "Ron Run",
+      "twitchTitle": "Ron Run | Bora correr 🏃 !pix !discord",
+      "twitchCategory": "",
+      "accent": "#22c55e",
+      "accent2": "#38bdf8",
+      "detect": {
+        "type": "manual",
+        "process": ""
+      },
+      "volumes": {},
+      "sources": []
+    }
+  ],
+  "buttons": [
+    {
+      "id": "b1",
+      "label": "Começando",
+      "emoji": "🎬",
+      "type": "scene",
+      "scene": "Começando",
+      "color": "#7c3aed",
+      "icon": "film-slate"
+    },
+    {
+      "id": "b2",
+      "label": "Jogo",
+      "emoji": "🎮",
+      "type": "scene",
+      "scene": "Jogo",
+      "color": "#2563eb",
+      "icon": "game-controller"
+    },
+    {
+      "id": "b4",
+      "label": "Encerrando",
+      "emoji": "👋",
+      "type": "scene",
+      "scene": "Encerrando",
+      "color": "#059669",
+      "icon": "hand-waving"
+    },
+    {
+      "id": "b5",
+      "label": "Mutar Mic",
+      "emoji": "🎙️",
+      "type": "toggleMute",
+      "input": "Mic/Aux",
+      "color": "#dc2626",
+      "icon": "microphone-slash"
+    },
+    {
+      "id": "b6",
+      "label": "Marcar Clipe",
+      "emoji": "✂️",
+      "type": "marker",
+      "color": "#db2777",
+      "icon": "scissors"
+    },
+    {
+      "id": "b7",
+      "label": "Salvar Replay",
+      "emoji": "⏪",
+      "type": "replay",
+      "color": "#0891b2",
+      "icon": "rewind"
+    },
+    {
+      "id": "b8",
+      "label": "Efeito GG",
+      "emoji": "🎉",
+      "type": "effect",
+      "effect": "text",
+      "text": "GG!",
+      "color": "#65a30d",
+      "icon": "confetti"
+    },
+    {
+      "id": "b9",
+      "label": "ACE",
+      "emoji": "💥",
+      "type": "effect",
+      "effect": "text",
+      "text": "ACE!",
+      "color": "#ea580c",
+      "icon": "lightning"
+    },
+    {
+      "id": "s1",
+      "label": "Sirene",
+      "emoji": "🚨",
+      "type": "sound",
+      "file": "sirene-policia.wav",
+      "color": "#dc2626",
+      "icon": "siren"
+    },
+    {
+      "id": "s2",
+      "label": "Sirene rápida",
+      "emoji": "🚓",
+      "type": "sound",
+      "file": "sirene-rapida.wav",
+      "color": "#1d4ed8",
+      "icon": "siren"
+    },
+    {
+      "id": "s3",
+      "label": "Buzina",
+      "emoji": "📯",
+      "type": "sound",
+      "file": "buzina-ar.wav",
+      "color": "#d97706",
+      "icon": "megaphone"
+    },
+    {
+      "id": "s4",
+      "label": "FAH",
+      "emoji": "😮",
+      "type": "sound",
+      "file": "fah-sintetico.wav",
+      "color": "#7c3aed",
+      "icon": "smiley"
+    },
+    {
+      "id": "s5",
+      "label": "Erro",
+      "emoji": "❌",
+      "type": "sound",
+      "file": "erro.wav",
+      "color": "#b91c1c",
+      "icon": "x-circle"
+    },
+    {
+      "id": "s6",
+      "label": "Trombone triste",
+      "emoji": "😢",
+      "type": "sound",
+      "file": "trombone-triste.wav",
+      "color": "#0369a1",
+      "icon": "smiley-sad"
+    },
+    {
+      "id": "s7",
+      "label": "Boom",
+      "emoji": "💥",
+      "type": "sound",
+      "file": "boom.wav",
+      "color": "#475569",
+      "icon": "bomb"
+    },
+    {
+      "id": "s8",
+      "label": "Ding",
+      "emoji": "✅",
+      "type": "sound",
+      "file": "ding.wav",
+      "color": "#16a34a",
+      "icon": "check-circle"
+    },
+    {
+      "id": "s9",
+      "label": "Moeda",
+      "emoji": "🪙",
+      "type": "sound",
+      "file": "moeda.wav",
+      "color": "#ca8a04",
+      "icon": "coin"
+    },
+    {
+      "id": "s10",
+      "label": "Rimshot",
+      "emoji": "🥁",
+      "type": "sound",
+      "file": "rimshot.wav",
+      "color": "#be185d",
+      "icon": "music-notes"
+    },
+    {
+      "id": "s11",
+      "label": "Parar sons",
+      "emoji": "🔇",
+      "type": "stopSounds",
+      "color": "#334155",
+      "icon": "speaker-slash"
+    }
+  ],
+  "soundVolume": 80,
+  "integrations": {
+    "cs2Token": ""
+  },
+  "autoClips": {
+    "enabled": true,
+    "cs2Kills": 3,
+    "lolKills": 3,
+    "donationMin": 20,
+    "raid": true,
+    "chatPerMin": 0,
+    "twitchClip": false
+  },
+  "mixer": {
+    "hidden": [],
+    "order": []
+  },
+  "triggers": [
+    {
+      "id": "t1",
+      "label": "Recompensa: Sirene",
+      "enabled": true,
+      "when": {
+        "type": "redeem",
+        "match": "Sirene"
+      },
+      "cooldown": 30,
+      "actions": [
+        {
+          "type": "sound",
+          "file": "sirene-policia.wav"
+        },
+        {
+          "type": "alert",
+          "text": "{user} chamou a polícia!"
+        }
+      ]
+    },
+    {
+      "id": "t2",
+      "label": "Recompensa: Buzina",
+      "enabled": true,
+      "when": {
+        "type": "redeem",
+        "match": "Buzina"
+      },
+      "cooldown": 15,
+      "actions": [
+        {
+          "type": "sound",
+          "file": "buzina-ar.wav"
+        }
+      ]
+    },
+    {
+      "id": "t3",
+      "label": "Doação média (R$20 a R$49)",
+      "enabled": true,
+      "when": {
+        "type": "donation",
+        "min": 20,
+        "max": 49.99
+      },
+      "cooldown": 0,
+      "actions": [
+        {
+          "type": "sound",
+          "file": "ding.wav"
+        },
+        {
+          "type": "effect",
+          "text": "OBRIGADO!"
+        }
+      ]
+    },
+    {
+      "id": "t4",
+      "label": "Doação grande (R$50 ou mais)",
+      "enabled": true,
+      "when": {
+        "type": "donation",
+        "min": 50
+      },
+      "cooldown": 0,
+      "actions": [
+        {
+          "type": "sound",
+          "file": "boom.wav"
+        },
+        {
+          "type": "effect",
+          "text": "MUITO OBRIGADO!"
+        }
+      ]
+    },
+    {
+      "id": "t5",
+      "label": "Vitória",
+      "enabled": true,
+      "when": {
+        "type": "win"
+      },
+      "cooldown": 0,
+      "actions": [
+        {
+          "type": "sound",
+          "file": "moeda.wav"
+        },
+        {
+          "type": "effect",
+          "text": "VITÓRIA!"
+        }
+      ]
+    },
+    {
+      "id": "t6",
+      "label": "Derrota",
+      "enabled": true,
+      "when": {
+        "type": "loss"
+      },
+      "cooldown": 0,
+      "actions": [
+        {
+          "type": "sound",
+          "file": "trombone-triste.wav"
+        },
+        {
+          "type": "effect",
+          "text": "F"
+        }
+      ]
+    },
+    {
+      "id": "t7",
+      "label": "Comando !sirene (só mods)",
+      "enabled": false,
+      "when": {
+        "type": "command",
+        "match": "!sirene",
+        "who": "mods"
+      },
+      "cooldown": 20,
+      "actions": [
+        {
+          "type": "sound",
+          "file": "sirene-rapida.wav"
+        }
+      ]
+    }
+  ]
+}

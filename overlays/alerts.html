@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Alertas</title>
+<style>
+  :root{--a1:#8b5cf6;--a2:#db2777}
+  html,body{margin:0;background:transparent;overflow:hidden;font-family:'Segoe UI',system-ui,sans-serif;width:100vw;height:100vh}
+  #stage{position:fixed;inset:0;display:flex;align-items:flex-start;justify-content:center;padding-top:6vh}
+  .card{color:#fff;text-align:center;padding:18px 34px;border-radius:20px;background:linear-gradient(135deg,var(--a1),var(--a2));box-shadow:0 10px 40px #0008;animation:in .5s cubic-bezier(.2,1.4,.4,1),out .5s 5.2s forwards;max-width:80vw}
+  .card.small{background:linear-gradient(135deg,#2563eb,var(--a1))}
+  .card.big{background:linear-gradient(135deg,#f59e0b,#ef4444);font-size:1.25em;animation:in .5s cubic-bezier(.2,1.4,.4,1),pulse .6s 3 .5s,out .5s 5.2s forwards}
+  .card.evt{background:linear-gradient(135deg,var(--a1),var(--a2))}
+  .card .who{font-size:30px;font-weight:800}
+  .card .amt{font-size:42px;font-weight:900}
+  .card .msg{font-size:22px;opacity:.95;margin-top:6px;word-break:break-word}
+  .text{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;font-size:20vw;font-weight:900;color:#fff;-webkit-text-stroke:6px #000;text-shadow:0 0 40px var(--a1);animation:pop 2.2s forwards}
+  @keyframes in{from{transform:translateY(-60px) scale(.6);opacity:0}to{transform:none;opacity:1}}
+  @keyframes out{to{transform:translateY(-40px);opacity:0}}
+  @keyframes pulse{50%{transform:scale(1.08)}}
+  @keyframes pop{0%{transform:scale(.2);opacity:0}15%{transform:scale(1.1);opacity:1}25%{transform:scale(1)}85%{opacity:1}100%{transform:scale(1.2);opacity:0}}
+  .confetti{position:fixed;top:-20px;width:10px;height:16px;animation:fall linear forwards}
+  @keyframes fall{to{transform:translateY(110vh) rotate(720deg)}}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<script>
+const stage=document.getElementById('stage');
+const esc=s=>String(s??'').replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+const queue=[];let busy=false,paused=false,current=null,last=null,ws;
+
+function report(){try{ws.send(JSON.stringify({type:'alertState',queued:queue.length+(busy?1:0),paused}))}catch{}}
+function confetti(n=60){
+  const colors=['#f59e0b','#ef4444','#8b5cf6','#22c55e','#38bdf8','#ec4899'];
+  for(let i=0;i<n;i++){const c=document.createElement('div');c.className='confetti';
+    c.style.left=Math.random()*100+'vw';c.style.background=colors[i%colors.length];
+    c.style.animationDuration=(2+Math.random()*2.5)+'s';c.style.animationDelay=Math.random()*.6+'s';
+    document.body.appendChild(c);setTimeout(()=>c.remove(),5500)}
+}
+var audios=[];
+function play(file,vol){
+  if(!file)return;
+  const a=new Audio('/sounds/'+encodeURIComponent(file));
+  a.volume=Math.max(0,Math.min(1,(vol==null?90:vol)/100));
+  audios.push(a);
+  const rm=function(){const i=audios.indexOf(a);if(i>-1)audios.splice(i,1)};
+  a.addEventListener('ended',rm);a.addEventListener('error',rm);
+  a.play().catch(rm);
+}
+function stopAll(){audios.splice(0).forEach(function(a){try{a.pause();a.currentTime=0}catch(e){}})}
+
+const ICON={follow:'💜',sub:'⭐',resub:'⭐',gift:'🎁',raid:'🚀',bits:'💎'};
+function show(ev){
+  busy=true;last=ev;let dur=6200;const els=[];
+  if(ev.type==='donation'){
+    const d=document.createElement('div');d.className='card '+(ev.effect||'small');
+    d.innerHTML=`<div class="who">${esc(ev.name)}</div><div class="amt">R$ ${Number(ev.amount).toFixed(2).replace('.',',')}</div>${ev.message?`<div class="msg">${esc(ev.message)}</div>`:''}`;
+    stage.appendChild(d);els.push(d);play(ev.sound);
+    if(ev.effect==='big')confetti(90);else if(ev.effect==='medium')confetti(40);
+  }else if(ev.type==='twitchEvent'){
+    const d=document.createElement('div');d.className='card evt';
+    d.innerHTML=`<div class="who">${ICON[ev.kind]||'✨'} ${esc(ev.text)}</div>${ev.extra?`<div class="msg">${esc(ev.extra)}</div>`:''}`;
+    stage.appendChild(d);els.push(d);play(ev.sound);
+    if(ev.kind==='raid'||ev.kind==='gift')confetti(60);
+  }else if(ev.type==='effect'){
+    dur=2300;const t=document.createElement('div');t.className='text';t.textContent=ev.text||'';
+    document.body.appendChild(t);els.push(t);play(ev.sound);confetti(50);
+  }
+  current={els};
+  current.timer=setTimeout(()=>finish(),dur);
+  report();
+}
+function finish(){
+  if(!current)return;clearTimeout(current.timer);current.els.forEach(e=>e.remove());current=null;busy=false;
+  setTimeout(next,250);report();
+}
+function next(){if(!busy&&!paused&&queue.length)show(queue.shift());report()}
+
+function connect(){
+  ws=new WebSocket('ws://'+location.host+'/ws');
+  ws.onmessage=e=>{const m=JSON.parse(e.data);
+    if(m.type==='donation'||m.type==='effect'||m.type==='twitchEvent'){queue.push(m);next();report()}
+    else if(m.type==='sound')play(m.file,m.volume);
+    else if(m.type==='stopSounds')stopAll();
+    else if(m.type==='theme'){document.documentElement.style.setProperty('--a1',m.theme.accent);document.documentElement.style.setProperty('--a2',m.theme.accent2)}
+    else if(m.type==='alertControl'){
+      if(m.action==='skip')finish();
+      if(m.action==='replay'&&last){queue.unshift(last);next()}
+      if(m.action==='pause'){paused=true;report()}
+      if(m.action==='resume'){paused=false;next()}
+      if(m.action==='toggle'){paused=!paused;paused?report():next()}
+      if(m.action==='clear'){queue.length=0;finish();report()}
+    }};
+  ws.onopen=report;
+  ws.onclose=()=>setTimeout(connect,2000);
+}
+connect();
+</script>
+</body>
+</html>

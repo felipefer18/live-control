@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Tela</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap">
+<style>
+  :root{--ac:#8b5cf6;--ac2:#ec4899;--glow:0 0 30px #8b5cf6b3}
+  html,body{margin:0;width:1920px;height:1080px;overflow:hidden;background:#07060f;font-family:Rajdhani,'Segoe UI',system-ui,sans-serif;color:#fff}
+  #bg{position:absolute;inset:0;background:radial-gradient(ellipse at 50% 42%,var(--bgc) 0,#07060f 62%)}
+  .grid{position:absolute;inset:0;opacity:.18;background-image:linear-gradient(var(--ac) 1px,transparent 1px),linear-gradient(90deg,var(--ac) 1px,transparent 1px);background-size:96px 96px;transform:perspective(900px) rotateX(62deg) translateY(-6%);transform-origin:50% 100%;mask-image:linear-gradient(to top,#000 0,transparent 75%);-webkit-mask-image:linear-gradient(to top,#000 0,transparent 75%)}
+  .frame{position:absolute;inset:48px;border:5px solid var(--ac);box-shadow:var(--glow),inset 0 0 60px var(--inner);}
+  .center{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .tag{font:700 34px Rajdhani;letter-spacing:.5em;text-transform:uppercase;color:var(--ac2);margin-bottom:10px;padding-left:.5em}
+  h1{margin:0;font:700 190px/0.95 Rajdhani;font-style:italic;text-transform:uppercase;text-shadow:0 0 40px var(--ac),0 0 90px var(--inner)}
+  .sub{font:600 56px Rajdhani;letter-spacing:.08em;text-transform:uppercase;margin-top:26px;color:#f0eaff}
+  .count{font:700 150px Rajdhani;font-style:italic;color:var(--ac);text-shadow:var(--glow);margin-top:18px;font-variant-numeric:tabular-nums;letter-spacing:.04em}
+  .live{position:absolute;left:96px;top:96px;background:#ef233c;color:#fff;font:700 34px Rajdhani;letter-spacing:.14em;padding:6px 26px 6px 20px;clip-path:polygon(0 0,100% 0,calc(100% - 16px) 100%,0 100%);box-shadow:0 0 24px #ef233c}
+  .scanline{position:absolute;left:48px;right:48px;height:3px;background:linear-gradient(90deg,transparent,var(--ac2),transparent);box-shadow:0 0 18px var(--ac2);animation:scan 5s linear infinite}
+  @keyframes scan{from{top:48px}to{top:1030px}}
+  .foot{position:absolute;left:96px;right:96px;bottom:92px;display:flex;justify-content:space-between;align-items:flex-end}
+  .soc{font:600 32px/1.6 Rajdhani;color:#e6e0ff}.soc em{font-style:normal;color:var(--ac);min-width:200px;display:inline-block;text-transform:uppercase;letter-spacing:.06em}
+  .qrb{display:flex;align-items:center;gap:22px;text-align:right}
+  .qr{background:#fff;padding:10px;width:170px;height:170px;border-radius:6px;box-shadow:0 0 0 4px var(--ac),var(--glow)}.qr svg{display:block;width:100%;height:100%}
+  .qrb .u{font:700 38px Rajdhani;font-style:italic;text-transform:uppercase}.qrb .h{font:600 24px Rajdhani;color:var(--ac2);letter-spacing:.05em}
+  @media (prefers-reduced-motion:reduce){.scanline{animation:none}}
+</style>
+</head>
+<body>
+<div id="bg"></div><div class="grid"></div><div class="frame"></div><div class="scanline"></div>
+<div class="center" id="c"></div>
+<div class="foot" id="f"></div>
+<script>
+var P=new URLSearchParams(location.search);
+var TYPE=P.get('type')||'starting';
+var MIN=parseFloat(P.get('min')||'0');
+var esc=function(s){return String(s==null?'':s).replace(/[&<>"]/g,function(c){return{'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})};
+function rgb(h){h=h.replace('#','');return[parseInt(h.substr(0,2),16),parseInt(h.substr(2,2),16),parseInt(h.substr(4,2),16)]}
+function rgba(h,a){var c=rgb(h);return'rgba('+c[0]+','+c[1]+','+c[2]+','+a+')'}
+function mix(h,base,t){var a=rgb(h),b=rgb(base);return'#'+[0,1,2].map(function(i){return Math.round(a[i]*t+b[i]*(1-t)).toString(16).padStart(2,'0')}).join('')}
+function theme(ac,ac2){var s=document.documentElement.style;s.setProperty('--ac',ac);s.setProperty('--ac2',ac2);s.setProperty('--glow','0 0 30px '+rgba(ac,.7));s.setProperty('--inner',rgba(ac,.35));s.setProperty('--bgc',mix(ac,'#07060f',.22))}
+theme('#8b5cf6','#ec4899');
+
+var COPY={starting:['Já já começa','A live começa em instantes'],brb:['Já volto','Segura aí, volto em instantes'],ending:['Valeu!','Obrigado por assistir, até a próxima']};
+var B=null,qrSvg='',endAt=null;
+function render(){
+  var c=COPY[TYPE]||COPY.starting;
+  var h='<div class="tag">'+esc(B?B.name:'')+'</div><h1>'+esc(c[0])+'</h1><div class="sub">'+esc(c[1])+'</div>';
+  if(TYPE==='starting'&&MIN>0)h+='<div class="count" id="cd">--:--</div>';
+  document.getElementById('c').innerHTML=h;
+  var f='<div class="soc">'+((B&&B.socials)||[]).slice(0,3).map(function(s){return'<div><em>'+esc(s.label)+'</em>'+esc(s.text)+'</div>'}).join('')+'</div>';
+  if(TYPE!=='starting')f+='<div class="qrb"><div><div class="h">Apoie a live</div><div class="u">'+esc(String((B&&B.livepixUrl)||'').replace(/^https?:\/\//i,''))+'</div></div><div class="qr">'+qrSvg+'</div></div>';
+  document.getElementById('f').innerHTML=f;
+}
+function tick(){
+  var el=document.getElementById('cd');if(!el||!endAt)return;
+  var s=Math.max(0,Math.round((endAt-Date.now())/1000));
+  el.textContent=String(Math.floor(s/60)).padStart(2,'0')+':'+String(s%60).padStart(2,'0');
+}
+async function load(){
+  var st=await fetch('/api/state').then(function(r){return r.json()});
+  var t=st.theme||{accent:'#8b5cf6',accent2:'#ec4899'};theme(t.accent,t.accent2);
+  var lay=await fetch('/api/layout/'+encodeURIComponent((st.activeProfile)||((st.config.profiles[0]||{}).id))).then(function(r){return r.json()});
+  B=lay.layout.brand;
+  qrSvg=await fetch('/api/qr.svg').then(function(r){return r.text()});
+  if(MIN>0&&!endAt)endAt=Date.now()+MIN*60000;
+  render();tick();
+}
+load().catch(function(){setTimeout(load,3000)});
+setInterval(tick,500);
+(function connect(){
+  var ws=new WebSocket((location.protocol==='https:'?'wss://':'ws://')+location.host+'/ws');
+  ws.onmessage=function(e){var m=JSON.parse(e.data);if(m.type==='theme')theme(m.theme.accent,m.theme.accent2);if(m.type==='config')load()};
+  ws.onclose=function(){setTimeout(connect,2000)};
+})();
+</script>
+</body>
+</html>
